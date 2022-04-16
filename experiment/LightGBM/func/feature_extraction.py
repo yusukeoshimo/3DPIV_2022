@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 class ExtractFeatures():
     def __init__(self, arr): # arrには2次元のデータを入れる事．正規化データは使えない
-        self.arr = arr.astype('uint8')
+        self.arr = arr.astype('float32')
         self.features = np.array([],dtype='float32')
     
     def extract_diag(self, mag=1): # magはmagnification(倍率)の略
@@ -31,7 +31,7 @@ if __name__ == '__main__':
     height = int(input('input height >'))
     width = int(input('input width >'))
     save_dir = input('input dir to save memmap >')
-    arr = np.memmap(memmap_path, dtype='float32', mode='r').reshape(-1, height, width)
+    arr = np.memmap(memmap_path, dtype='uint8', mode='r').reshape(-1, height, width)
     for i, img in enumerate(tqdm(arr)):
         ext = ExtractFeatures(img)
         ext.extract_diag(0.1)

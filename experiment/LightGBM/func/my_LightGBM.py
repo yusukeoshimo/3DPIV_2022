@@ -25,7 +25,7 @@ if __name__ == '__main__':
     save_path = os.path.join(save_dir, 'my_LightGBM.pkl')
     
     origin_x = np.memmap(x_path, dtype='float32', mode='r').reshape(-1, feature_size)
-    origin_y = np.memmap(y_path, dtype='float32', mode='r')
+    origin_y = np.memmap(y_path, dtype='uint8', mode='r')
     
     x_train, x_test, y_train, y_test = train_test_split(origin_x, origin_y, test_size=0.2)
     

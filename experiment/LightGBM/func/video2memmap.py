@@ -17,7 +17,7 @@ def video2memmap(original_video_path, memmap_path):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     size = (frame_num, height, width)
     
-    memmap = np.memmap(memmap_path, dtype='float32', mode='w+', shape=size)
+    memmap = np.memmap(memmap_path, dtype='uint8', mode='w+', shape=size)
     print(memmap.shape)
 
     for i in tqdm(range(frame_num)):

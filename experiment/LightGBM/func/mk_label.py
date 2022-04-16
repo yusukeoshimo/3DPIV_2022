@@ -16,7 +16,7 @@ def video2label(original_video_path, label, memmap_path):
     size = (frame_num)
     cap.release()
     
-    memmap = np.memmap(memmap_path, dtype='float32', mode='w+', shape=size)
+    memmap = np.memmap(memmap_path, dtype='uint8', mode='w+', shape=size)
     memmap[:] = memmap + label # memmapは［：］がないとファイルの中身が書き変わらない
 
 
