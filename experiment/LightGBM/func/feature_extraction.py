@@ -1,7 +1,5 @@
 import os
-from statistics import mode
 from cv2 import resize
-from lightgbm import cv
 import numpy as np
 import cv2
 from tqdm import tqdm
@@ -24,6 +22,10 @@ class ExtractFeatures():
         resize_arr = cv2.resize(self.arr,(int(self.arr.shape[0]*mag), int(self.arr.shape[1]*mag)))
         std = np.std(resize_arr, dtype='float32')
         self.features = np.hstack((self.features, std))
+    
+    def extract_all_values(self, size):
+        resize_arr = cv2.resize(self.arr, size).reshape(-1)
+        self.features = np.hstack((self.features, resize_arr))
 
 
 if __name__ == '__main__':
