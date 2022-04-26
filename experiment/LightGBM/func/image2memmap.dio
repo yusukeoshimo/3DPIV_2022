@@ -1,0 +1,13 @@
+<mxfile host="65bd71144e">
+    <diagram id="Eewiz1_B35NZi4o6niiG" name="ページ1">
+        <mxGraphModel dx="584" dy="622" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="12" value="&lt;div style=&quot;text-align: center&quot;&gt;images2memmap(dir_path, memap_path)&lt;span&gt;&lt;br&gt;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: center&quot;&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;【概要】&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;フォルダ内にある画像すべてを1つのmemmapに保存する関数．&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;【入力】&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;dir_path: memmapにしたい画像群が保存されているディレクトリのパス．&lt;/span&gt;&lt;/div&gt;memmap_path: 出力するmemmapのパス&lt;br&gt;&lt;br&gt;【出力】指定したmemmapを書き込む．&lt;br&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="40" width="370" height="180" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
