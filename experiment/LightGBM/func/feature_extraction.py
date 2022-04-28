@@ -23,7 +23,7 @@ class ExtractFeatures():
         std = np.std(resize_arr, dtype='float32')
         self.features = np.hstack((self.features, std))
     
-    def extract_all_values(self, size):
+    def extract_all_values(self, size): #size=(H, W)
         resize_arr = cv2.resize(self.arr, size).reshape(-1)
         self.features = np.hstack((self.features, resize_arr))
 
@@ -36,9 +36,9 @@ if __name__ == '__main__':
     arr = np.memmap(memmap_path, dtype='uint8', mode='r').reshape(-1, height, width)
     for i, img in enumerate(tqdm(arr)):
         ext = ExtractFeatures(img)
-        ext.extract_diag(0.1)
-        ext.extract_mean()
         ext.extract_std(0.1)
+        ext.extract_mean()
+        ext.extract_all_values((5, 5))
         if i == 0:
             save_path = os.path.join(save_dir, 'extracted_features_{}.npy'.format(ext.features.shape[0]))
             new_arr = np.memmap(save_path, dtype='float32', mode='w+', shape=(arr.shape[0], ext.features.shape[0]))
