@@ -2,7 +2,7 @@ import os
 import numpy as np
 from tqdm import tqdm
 
-def stack_memmap(memmap_path_list, saved_dir, video_height, video_width):
+def stack_memmap(memmap_path_list, stack_memmap_path, video_height, video_width):
     # memmapの合計サイズを調べる
     total_size = 0
     memmap_size_list = []
@@ -10,14 +10,6 @@ def stack_memmap(memmap_path_list, saved_dir, video_height, video_width):
         memmap = np.memmap(memmap_path, dtype='uint8', mode='r')
         total_size += int(memmap.shape[0])
         memmap_size_list.append(memmap.shape[0])
-    
-    # 新しいmemmapの名前を作る
-    stack_memmap_name = 'stack'
-    for memmap_path in memmap_path_list:
-        base_name = os.path.splitext(os.path.basename(memmap_path))[0]
-        stack_memmap_name += '_'
-        stack_memmap_name += base_name
-    stack_memmap_path = os.path.join(saved_dir, '{}.npy'.format(stack_memmap_name))
     
     # memmapをくっつける
     new_memmap = np.memmap(stack_memmap_path, dtype='uint8', mode='w+', shape=(total_size)).reshape(-1, video_height, video_width) # くっつけてできる新しいmemmap
@@ -38,9 +30,9 @@ if __name__ == '__main__':
             break
         memmap_path_list.append(memmap_path)
     
-    saved_dir = input('input dir path to save stack memmap >')
+    stack_memmap_path = input('input stack memmap path >')
     
     video_height = int(input('input video height of image >'))
     video_width = int(input('intput video width of video >'))
     
-    stack_memmap(memmap_path_list, saved_dir, video_height, video_width)
+    stack_memmap(memmap_path_list, stack_memmap_path, video_height, video_width)
