@@ -9,10 +9,10 @@ import os
 
 def my_classifier(x, y):
     clf = lgbm.LGBMClassifier(objective='multiclass',
-                              num_leaves=64,
-                              min_child_samples=20,
-                              max_depth=4)
-    clf.fit(x_train, y_train)
+                              num_leaves=40,
+                              min_child_samples=100,
+                              max_depth=2)
+    clf.fit(x, y)
     return clf
 
 if __name__ == '__main__':

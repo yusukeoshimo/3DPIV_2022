@@ -38,7 +38,7 @@ if __name__ == '__main__':
         ext = ExtractFeatures(img)
         ext.extract_std(0.1)
         ext.extract_mean()
-        ext.extract_all_values((5, 5))
+        ext.extract_all_values((3, 1))
         if i == 0:
             save_path = os.path.join(save_dir, 'extracted_features_{}.npy'.format(ext.features.shape[0]))
             new_arr = np.memmap(save_path, dtype='float32', mode='w+', shape=(arr.shape[0], ext.features.shape[0]))
