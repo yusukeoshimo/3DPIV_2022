@@ -63,10 +63,9 @@ if __name__ == '__main__':
     relearning_input_list = [prelearning_input, appending_feature_path]
     relearning_input = 'relearning_features_5.npy'
     stack_memmap(relearning_input_list, relearning_input, 1, 5)
+    del new_arr
     gc.collect()
     [os.remove(file_name) for file_name in relearning_input_list]
-    del new_arr
-    os.remove(appending_feature_path)
     
     # second stack memmap (prelearning_ouput + relearing_output)
     prelearning_output = 'prelearning_label.npy'
