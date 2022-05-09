@@ -1,20 +1,27 @@
-from statistics import mode
 import cv2
 import numpy as np
 import pickle
 from tqdm import tqdm
 import os
+import shutil
 
 if __name__ == '__main__':
     memmap_path = input('input x >')
     model_path = input('input model >')
     data_len = 5
-    dir_2 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM\2'
-    dir_1 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM\1'
     dir_0 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM\0'
+    dir_1 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM\1'
+    dir_2 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM\2'
     width = 960
     height = 1280
     video_mem_path = input('input target memmap >')
+    
+    # ディレクトリ内を空にする
+    dir_list = [dir_0, dir_1, dir_2]
+    for i in dir_list:
+        if os.path.exists(i):
+            shutil.rmtree(i)
+        os.mkdir(i)
     
     
     with open(model_path, 'rb') as f:
