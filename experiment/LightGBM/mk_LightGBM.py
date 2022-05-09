@@ -27,14 +27,9 @@ if __name__ == '__main__':
     origin_x = np.memmap(x_path, dtype='float32', mode='r').reshape(-1, feature_size)
     origin_y = np.memmap(y_path, dtype='uint8', mode='r')
     
-    x_train, x_test, y_train, y_test = train_test_split(origin_x, origin_y, test_size=0.2)
     
-    clf = my_classifier(x_train, y_train)
+    clf = my_classifier(origin_x, origin_y)
     
-    y_pred = clf.predict(x_test)
-    accuracy = accuracy_score(y_pred, y_test)
-    print(accuracy)
-    print(y_pred)
     
     with open(save_path, 'wb') as f:
         pickle.dump(clf, f)
