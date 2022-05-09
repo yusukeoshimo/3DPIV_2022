@@ -1,23 +1,16 @@
-from operator import imod
-from func.video2memmap import video2memmap
 from func.mk_label import mk_label
 from func.stack_memmap import stack_memmap
 from func.feature_extraction import ExtractFeatures
 from func.image2memmap import img2memmap
-import cv2
 import numpy as np
 from tqdm import tqdm
 import os
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-import lightgbm as lgbm
-from sklearn.metrics import accuracy_score
-import pickle
-import time
 import gc
 
 if __name__ == '__main__':
-    os.chdir(r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM')
+    os.chdir(input('input cwd >'))
+    prelearning_input = input('input prelearning features >')
+    prelearning_output = input('input prelearning label >')
     
     # img2memmap
     appending_dir_list = ['appending_{}'.format(i) for i in range(3)]
@@ -59,7 +52,6 @@ if __name__ == '__main__':
     os.remove(appending_raw_data)
     
     # stack features (preleaning+appending)
-    prelearning_input = 'prelearning_features_5.npy'
     relearning_input_list = [prelearning_input, appending_feature_path]
     relearning_input = 'relearning_features_5.npy'
     stack_memmap(relearning_input_list, relearning_input, 1, 5)
@@ -68,7 +60,6 @@ if __name__ == '__main__':
     [os.remove(file_name) for file_name in relearning_input_list]
     
     # second stack memmap (prelearning_ouput + relearing_output)
-    prelearning_output = 'prelearning_label.npy'
     relearning_output_list = [prelearning_output, appending_output]
     relearning_output = 'relearning_output.npy'
     stack_memmap(relearning_output_list, relearning_output, 1, 1)
