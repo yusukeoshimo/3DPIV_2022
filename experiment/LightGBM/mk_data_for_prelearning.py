@@ -6,21 +6,7 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import os
-from sklearn.metrics import accuracy_score
-from sklearn.model_selection import train_test_split
-import lightgbm as lgbm
-from sklearn.metrics import accuracy_score
-import pickle
-import time
 import gc
-
-def my_classifier(x, y):
-    clf = lgbm.LGBMClassifier(objective='multiclass',
-                              num_leaves=6,
-                              min_child_samples=100,
-                              max_depth=2)
-    clf.fit(x, y)
-    return clf
 
 if __name__ == '__main__':
     os.chdir(r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM')
@@ -73,26 +59,3 @@ if __name__ == '__main__':
     del arr, img
     gc.collect()
     os.remove(stack_prelearning_memap_path)
-    
-    # LightGBM
-    # x_path = feature_path
-    # y_path = stack_prelearning_label
-    
-    # feature_size = int(ext.features.shape[0])
-    # save_dir = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM'
-    # save_path = os.path.join(save_dir, 'my_LightGBM.pkl')
-    
-    # origin_x = np.memmap(x_path, dtype='float32', mode='r').reshape(-1, feature_size)
-    # origin_y = np.memmap(y_path, dtype='uint8', mode='r')
-    
-    # x_train, x_test, y_train, y_test = train_test_split(origin_x, origin_y, test_size=0.1)
-    
-    # clf = my_classifier(x_train, y_train)
-    
-    # y_pred = clf.predict(x_test)
-    # accuracy = accuracy_score(y_pred, y_test)
-    # print(accuracy)
-    # print(y_pred)
-    
-    # with open(save_path, 'wb') as f:
-    #     pickle.dump(clf, f)
