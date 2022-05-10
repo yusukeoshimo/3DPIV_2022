@@ -9,7 +9,7 @@ import os
 import gc
 
 if __name__ == '__main__':
-    os.chdir(r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM')
+    os.chdir(input('input cwd >'))
     
     # video2memmap
     prelearning_video_0 = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\video_for_LightGBM\nr_sc_200.avi'

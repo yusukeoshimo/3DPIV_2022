@@ -16,13 +16,13 @@ def my_classifier(x, y):
     return clf
 
 if __name__ == '__main__':
+    os.chdir(input('input cwd >'))
     
     x_path = input('input x memmap >')
     y_path = input('input y memmap >')
     
     feature_size = int(input('input size of one data >'))
-    save_dir = input('input dir to save LightGBM model >')
-    save_path = os.path.join(save_dir, 'my_LightGBM.pkl')
+    save_path = 'my_LightGBM.pkl'
     
     origin_x = np.memmap(x_path, dtype='float32', mode='r').reshape(-1, feature_size)
     origin_y = np.memmap(y_path, dtype='uint8', mode='r')

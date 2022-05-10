@@ -5,10 +5,10 @@ from tqdm import tqdm
 import os
 
 if __name__ == '__main__':
-    os.chdir(r'C:\Users\yusuk\Desktop\3DPIV_2022\data\memmap_for_LightGBM')
+    os.chdir(input('input cwd >'))
     
     # video2memmap to improve LightGBM
-    target_video = r'C:\Users\yusuk\Desktop\3DPIV_2022\data\test_video_for_LightGBM\横カメラ_先取得.avi'
+    target_video = input('input target video >')
     target_memmap = 'target.npy'
     video2memmap(target_video, target_memmap)
     
