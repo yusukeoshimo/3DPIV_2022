@@ -10,10 +10,12 @@ import glob
 from tqdm import tqdm
 
 def mk_label(frame_num, label, memmap_path):
-    size = (frame_num)
-    
-    memmap = np.memmap(memmap_path, dtype='uint8', mode='w+', shape=size)
-    memmap[:] = memmap + label # memmapは［：］がないとファイルの中身が書き変わらない
+    if frame_num == 0:
+        exit('frame_numを0以外にしてください')
+    else:
+        size = (frame_num)
+        memmap = np.memmap(memmap_path, dtype='uint8', mode='w+', shape=size)
+        memmap[:] = memmap + label # memmapは［：］がないとファイルの中身が書き変わらない
 
 
 if __name__ == '__main__':
