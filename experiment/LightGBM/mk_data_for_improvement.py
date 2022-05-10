@@ -57,11 +57,11 @@ if __name__ == '__main__':
     stack_memmap(relearning_input_list, relearning_input, 1, 5)
     del new_arr
     gc.collect()
-    [os.remove(file_name) for file_name in relearning_input_list]
+    os.remove(appending_feature_path)
     
     # second stack memmap (prelearning_ouput + relearing_output)
     relearning_output_list = [prelearning_output, appending_output]
     relearning_output = 'relearning_output.npy'
     stack_memmap(relearning_output_list, relearning_output, 1, 1)
     gc.collect()
-    [os.remove(file_name) for file_name in relearning_output_list]
+    os.remove(appending_output)
