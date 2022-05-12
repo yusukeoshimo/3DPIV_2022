@@ -13,7 +13,7 @@ def all_remove(arr, value):
 
 def index_block(arr, value):
     classificate_list = []
-    for i, label in enumerate(y):
+    for i, label in enumerate(arr):
         if label != value:
             list_2 = []
             classificate_list.append(list_2)
