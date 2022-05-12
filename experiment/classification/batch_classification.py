@@ -45,4 +45,3 @@ if __name__ == '__main__':
         file_name = '{}_{}.npy'.format(i, size[0])
         arr = np.memmap(file_name, dtype='uint8', mode='w+', shape=size)
         arr[:] = data
-    print(arr)
