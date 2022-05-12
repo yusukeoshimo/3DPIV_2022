@@ -28,6 +28,8 @@ if __name__ == '__main__':
     data_len = 5
     width = 960
     height = 1280
+    fps = 220
+    spp = 0.5 # second per pulse
     video_mem_path = input('input target memmap >')
     
     with open(model_path, 'rb') as f:
@@ -45,3 +47,9 @@ if __name__ == '__main__':
         file_name = '{}_{}.npy'.format(i, size[0])
         arr = np.memmap(file_name, dtype='uint8', mode='w+', shape=size)
         arr[:] = data
+    
+    fpp = fps*spp
+    print('誤分類が無いか確認中...')
+    for i, indexes in enumerate(index_list):
+        if len(indexes) <= fpp*0.9:
+            print('誤分類：{}'.format(i))
