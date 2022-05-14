@@ -1,11 +1,10 @@
-import cv2
 import numpy as np
 import pickle
 from tqdm import tqdm
 import os
-import shutil
 import numpy as np
 from tqdm import tqdm
+import math
 
 def all_remove(arr, value):
     while value in arr:
@@ -21,6 +20,25 @@ def index_block(arr, value):
             list_2.append(i)
     return [i for i in classificate_list if i != []]
 
+def improve_index_list(index_list, fpp, fpi):
+    # fpp : frame per one pulse
+    # fpi : frame per iteration
+    fpp = math.ceil(fpp)
+    improved_list = []
+    for i, indexes in enumerate(index_list):
+        if i == 0:
+            if abs((len(indexes)-fpp)/fpp) <= 0.1:
+                start_point = indexes[0]
+                improved_list.append(list(range(start_point, start_point+fpp)))
+            else:
+                exit('!!! my error 1 !!!')
+        else:
+            print(abs((indexes[0]-(start_point+fpi))/fpi))
+            if abs((indexes[0]-(start_point+fpi))/fpi) <= 0.1:
+                start_point = indexes[0]
+                improved_list.append(list(range(start_point, start_point+fpp)))
+    return improved_list
+
 if __name__ == '__main__':
     os.chdir(input('input cwd >'))
     memmap_path = input('input x >')
@@ -30,6 +48,8 @@ if __name__ == '__main__':
     height = 1280
     fps = 220
     spp = 0.5 # second per pulse
+    fpp = fps*spp
+    fpi = fps*3
     video_mem_path = input('input target memmap >')
     
     with open(model_path, 'rb') as f:
@@ -41,6 +61,7 @@ if __name__ == '__main__':
     video_mem = np.memmap(video_mem_path, dtype='uint8', mode='r').reshape(-1, width, height)
     
     index_list = index_block(y, 2)
+    index_list = improve_index_list(index_list, fpp, fpi)
     for i, index in enumerate(tqdm(index_list)):
         data = video_mem[index]
         size = data.shape
