@@ -18,6 +18,10 @@ def read_json(json_path):
         d = json.load(f)
     return d
 
+def write_json(json_path, d):
+    with open(json_path, 'w') as f:
+        json.dump(d, f, indent=4)
+
 if __name__ == '__main__':
     cwd = input('input project dir >')
     os.chdir(cwd)
