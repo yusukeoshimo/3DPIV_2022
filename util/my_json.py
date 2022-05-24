@@ -12,7 +12,12 @@ def apend_json(json_path, key, value):
     
     with open(json_path, 'w') as f:
         json.dump(d, f, indent=4)
-        
+
+def read_json(json_path):
+    with open(json_path, 'r') as f:
+        d = json.load(f)
+    return d
+
 if __name__ == '__main__':
     cwd = input('input project dir >')
     os.chdir(cwd)
