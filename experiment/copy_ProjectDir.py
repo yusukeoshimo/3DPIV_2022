@@ -5,6 +5,7 @@ import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from util.my_json import read_json, write_json
+from util.txt_replacement import extract_txt
 
 copied_path = input('input project dir path you would like to copy >')
 pasted_dir = os.path.join(copied_path,'..')
@@ -15,6 +16,8 @@ new_project_path = os.path.join(pasted_dir, new_project_name)
 old_json_path = os.path.join(copied_path, 'system', 'control_dict.json')
 new_json_path = os.path.join(new_project_path, 'system', 'control_dict.json')
 
+cap_setting_path = os.path.join(pasted_dir, '0_camera_setting', 'camera_setting.iccf')
+
 # ディレクトリのコピー
 cmd = 'xcopy /t /e "{}" "{}\\"'.format(copied_path, new_project_path)
 returncode = subprocess.call(cmd)
@@ -24,3 +27,22 @@ old_d = read_json(old_json_path)
 new_d = {key : None for key in old_d.keys()}
 new_d['project_dir'] = new_project_path
 write_json(new_json_path, new_d)
+
+# カメラの設定ファイルの書き換え
+with open(cap_setting_path, 'r') as f:
+    old_file_str = f.read()
+
+old_path_list = extract_txt(old_file_str, '<filename>', '</filename>')
+
+new_path_list = []
+for i, old_path in enumerate(old_path_list):
+    old_project_dir_name = old_path.split('\\')[-4] # 古いパスのケツから4番目のディレクトリ．今回の場合, project_y_m_d_h_s.
+    new_path = old_path.replace(old_project_dir_name, new_project_name)
+    new_path_list.append(new_path)
+
+for i, old_path in enumerate(old_path_list):
+    new_file_str = old_file_str.replace('<filename>'+old_path+'</filename>', '<filename>'+new_path_list[i]+'</filename>')
+    print('{} -> {}'.format(old_path, new_path_list[i]))
+
+with open(cap_setting_path, 'w') as f:
+    f.write(new_file_str)
