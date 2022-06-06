@@ -35,9 +35,9 @@ write_json(new_json_path, new_d)
 
 # カメラの設定ファイルの書き換え
 with open(old_cap_setting_path, 'r') as f:
-    old_file_str = f.read()
+    file_str = f.read()
 
-old_path_list = extract_txt(old_file_str, '<filename>', '</filename>')
+old_path_list = extract_txt(file_str, '<filename>', '</filename>')
 
 new_path_list = []
 for i, old_path in enumerate(old_path_list):
@@ -46,9 +46,9 @@ for i, old_path in enumerate(old_path_list):
     new_path_list.append(new_path)
 
 for i, old_path in enumerate(old_path_list):
-    new_file_str = old_file_str.replace('<filename>'+old_path+'</filename>', '<filename>'+new_path_list[i]+'</filename>')
+    file_str = file_str.replace('<filename>'+old_path+'</filename>', '<filename>'+new_path_list[i]+'</filename>')
 with open(new_cap_setting_path, 'w') as f:
-    f.write(new_file_str)
+    f.write(file_str)
 
 # jsonファイルにraw_videoのパスを追記
 new_d = read_json(new_json_path)
