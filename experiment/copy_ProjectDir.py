@@ -6,30 +6,35 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from util.my_json import read_json, write_json
 from util.txt_replacement import extract_txt
+from util import winpath
 
 copied_path = input('input project dir path you would like to copy >')
-pasted_dir = os.path.join(copied_path,'..')
-
+pasted_dir = winpath.join(*copied_path.split('\\')[:-1])
 new_project_name = 'project_{}_{}_{}_{}_{}_{}'.format(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, datetime.now().minute, datetime.now().second)
 new_project_path = os.path.join(pasted_dir, new_project_name)
 
 old_json_path = os.path.join(copied_path, 'system', 'control_dict.json')
 new_json_path = os.path.join(new_project_path, 'system', 'control_dict.json')
 
-cap_setting_path = os.path.join(pasted_dir, '0_camera_setting', 'camera_setting.iccf')
+old_cap_setting_path = os.path.join(copied_path, 'system', 'camera_settings.iccf')
+new_cap_setting_path = os.path.join(new_project_path, 'system', 'camera_settings.iccf')
 
 # ディレクトリのコピー
 cmd = 'xcopy /t /e "{}" "{}\\"'.format(copied_path, new_project_path)
 returncode = subprocess.call(cmd)
 
-# jsonファイルのコピー，新しい書き込み，保存
+# jsonファイルのコピー，リセット，新しい書き込み，保存
 old_d = read_json(old_json_path)
 new_d = {key : None for key in old_d.keys()}
-new_d['project_dir'] = new_project_path
+new_d['project_dir_path'] = new_project_path
+new_d['side'] = {}
+new_d['side']['LightGBM_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM')
+new_d['bottom'] = {}
+new_d['bottom']['LightGBM_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM')
 write_json(new_json_path, new_d)
 
 # カメラの設定ファイルの書き換え
-with open(cap_setting_path, 'r') as f:
+with open(old_cap_setting_path, 'r') as f:
     old_file_str = f.read()
 
 old_path_list = extract_txt(old_file_str, '<filename>', '</filename>')
@@ -42,7 +47,13 @@ for i, old_path in enumerate(old_path_list):
 
 for i, old_path in enumerate(old_path_list):
     new_file_str = old_file_str.replace('<filename>'+old_path+'</filename>', '<filename>'+new_path_list[i]+'</filename>')
-    print('{} -> {}'.format(old_path, new_path_list[i]))
-
-with open(cap_setting_path, 'w') as f:
+with open(new_cap_setting_path, 'w') as f:
     f.write(new_file_str)
+
+# jsonファイルにraw_videoのパスを追記
+new_d = read_json(new_json_path)
+for new_path in new_path_list:
+    position_dir_name = new_path.split('\\')[-3]
+    raw_video_name = new_path.split('\\')[-1]
+    new_d[position_dir_name]['raw_video_path'] = new_path
+write_json(new_json_path, new_d)
