@@ -47,5 +47,6 @@ if __name__ == '__main__':
         new_arr[i] = ext.features
     
     control_dict = read_json(json_path)
+    control_dict[position_dir_name]['target_feature_path'] = os.path.join(cwd, target_feature)
     control_dict[position_dir_name]['features_num'] = ext.features.shape[0]
     write_json(json_path, control_dict)
