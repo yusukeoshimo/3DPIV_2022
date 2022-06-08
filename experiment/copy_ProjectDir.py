@@ -7,6 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from util.my_json import read_json, write_json
 from util.txt_replacement import extract_txt
 from util import winpath
+import shutil
 
 copied_path = input('input project dir path you would like to copy >')
 pasted_dir = winpath.join(*copied_path.split('\\')[:-1])
@@ -19,9 +20,18 @@ new_json_path = os.path.join(new_project_path, 'system', 'control_dict.json')
 old_cap_setting_path = os.path.join(copied_path, 'system', 'camera_settings.iccf')
 new_cap_setting_path = os.path.join(new_project_path, 'system', 'camera_settings.iccf')
 
+old_side_LightGBM_path = os.path.join(copied_path, 'side', 'LightGBM', 'my_LightGBM.pkl')
+old_bottom_LightGBM_path = os.path.join(copied_path, 'bottom', 'LightGBM', 'my_LightGBM.pkl')
+new_side_LightGBM_path = os.path.join(new_project_path, 'side', 'LightGBM', 'my_LightGBM.pkl')
+new_bottom_LightGBM_path = os.path.join(new_project_path, 'bottom', 'LightGBM', 'my_LightGBM.pkl')
+
 # ディレクトリのコピー
 cmd = 'xcopy /t /e "{}" "{}\\"'.format(copied_path, new_project_path)
 returncode = subprocess.call(cmd)
+
+# LightGBMモデルのコピー
+shutil.copy2(old_side_LightGBM_path, new_side_LightGBM_path)
+shutil.copy2(old_bottom_LightGBM_path, new_bottom_LightGBM_path)
 
 # jsonファイルのコピー，リセット，新しい書き込み，保存
 old_d = read_json(old_json_path)
