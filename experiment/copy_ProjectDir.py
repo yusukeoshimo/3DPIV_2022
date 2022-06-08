@@ -29,10 +29,6 @@ new_bottom_LightGBM_path = os.path.join(new_project_path, 'bottom', 'LightGBM', 
 cmd = 'xcopy /t /e "{}" "{}\\"'.format(copied_path, new_project_path)
 returncode = subprocess.call(cmd)
 
-# LightGBMモデルのコピー
-shutil.copy2(old_side_LightGBM_path, new_side_LightGBM_path)
-shutil.copy2(old_bottom_LightGBM_path, new_bottom_LightGBM_path)
-
 # jsonファイルのコピー，リセット，新しい書き込み，保存
 old_d = read_json(old_json_path)
 new_d = {key : None for key in old_d.keys()}
@@ -41,6 +37,14 @@ new_d['side'] = {}
 new_d['side']['LightGBM_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM')
 new_d['bottom'] = {}
 new_d['bottom']['LightGBM_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM')
+write_json(new_json_path, new_d)
+
+# LightGBMモデルのコピー，パスをjsonに追加
+shutil.copy2(old_side_LightGBM_path, new_side_LightGBM_path)
+shutil.copy2(old_bottom_LightGBM_path, new_bottom_LightGBM_path)
+new_d = read_json(new_json_path)
+new_d['side']['LightGBM_model_path'] = new_side_LightGBM_path
+new_d['bottom']['LightGBM_model_path'] = new_bottom_LightGBM_path
 write_json(new_json_path, new_d)
 
 # カメラの設定ファイルの書き換え
