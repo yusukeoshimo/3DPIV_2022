@@ -26,7 +26,7 @@ if __name__ == '__main__':
     
     # target_memmap_pathをjsonファイルに記入
     control_dict = read_json(json_path)
-    control_dict[position]['target_memmap_path'] = os.path.join(cwd, target_memmap)
+    control_dict[position_dir_name]['target_memmap_path'] = os.path.join(cwd, target_memmap)
     write_json(json_path, control_dict)
     
     cap = cv2.VideoCapture(target_video) #読み込む動画のパス
