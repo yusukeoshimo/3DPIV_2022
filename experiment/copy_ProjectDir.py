@@ -35,8 +35,22 @@ new_d = {key : None for key in old_d.keys()}
 new_d['project_dir_path'] = new_project_path
 new_d['side'] = {}
 new_d['side']['LightGBM_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM')
+new_d['side']['0_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', '0')
+new_d['side']['1_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', '1')
+new_d['side']['2_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', '2')
+new_d['side']['appending_0_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', 'appending_0')
+new_d['side']['appending_1_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', 'appending_1')
+new_d['side']['appending_2_dir_path'] = os.path.join(new_project_path, 'side', 'LightGBM', 'appending_2')
+new_d['side']['data_2_dir_path'] = os.path.join(new_project_path, 'side', 'data_2')
 new_d['bottom'] = {}
 new_d['bottom']['LightGBM_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM')
+new_d['bottom']['0_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', '0')
+new_d['bottom']['1_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', '1')
+new_d['bottom']['2_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', '2')
+new_d['bottom']['appending_0_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', 'appending_0')
+new_d['bottom']['appending_1_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', 'appending_1')
+new_d['bottom']['appending_2_dir_path'] = os.path.join(new_project_path, 'bottom', 'LightGBM', 'appending_2')
+new_d['bottom']['data_2_dir_path'] = os.path.join(new_project_path, 'bottom', 'data_2')
 write_json(new_json_path, new_d)
 
 # LightGBMモデルのコピー，パスをjsonに追加
