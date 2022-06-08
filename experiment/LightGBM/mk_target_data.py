@@ -1,4 +1,5 @@
 from asyncore import read
+from turtle import position
 from func.video2memmap import video2memmap
 from func.feature_extraction import ExtractFeatures
 import numpy as np
@@ -22,6 +23,11 @@ if __name__ == '__main__':
     target_video = control_dict[position_dir_name]['raw_video_path']
     target_memmap = 'target.npy'
     video2memmap(target_video, target_memmap)
+    
+    # target_memmap_pathをjsonファイルに記入
+    control_dict = read_json(json_path)
+    control_dict[position]['target_memmap_path'] = os.path.join(cwd, target_memmap)
+    write_json(json_path, control_dict)
     
     cap = cv2.VideoCapture(target_video) #読み込む動画のパス
     frame_num = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
