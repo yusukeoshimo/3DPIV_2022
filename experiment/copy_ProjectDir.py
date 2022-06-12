@@ -11,6 +11,7 @@ import shutil
 
 copied_path = input('input project dir path you would like to copy >')
 pasted_dir = winpath.join(*copied_path.split('\\')[:-1])
+old_project_name = copied_path.split('\\')[-1]
 new_project_name = 'project_{}_{}_{}_{}_{}_{}'.format(datetime.now().year, datetime.now().month, datetime.now().day, datetime.now().hour, datetime.now().minute, datetime.now().second)
 new_project_path = os.path.join(pasted_dir, new_project_name)
 
@@ -60,6 +61,25 @@ new_d = read_json(new_json_path)
 new_d['side']['LightGBM_model_path'] = new_side_LightGBM_path
 new_d['bottom']['LightGBM_model_path'] = new_bottom_LightGBM_path
 write_json(new_json_path, new_d)
+
+# LightGBMモデルの学習データをコピー
+old_d = read_json(old_json_path)
+new_d = read_json(new_json_path)
+
+new_d['side']['learning_input_path'] = old_d['side']['learning_input_path'].replace(old_project_name, new_project_name)
+shutil.copy2(old_d['side']['learning_input_path'], new_d['side']['learning_input_path'])
+
+new_d['bottom']['learning_input_path'] = old_d['bottom']['learning_input_path'].replace(old_project_name, new_project_name)
+shutil.copy2(old_d['bottom']['learning_input_path'], new_d['bottom']['learning_input_path'])
+
+new_d['side']['learning_label_path'] = old_d['side']['learning_label_path'].replace(old_project_name, new_project_name)
+shutil.copy2(old_d['side']['learning_label_path'], new_d['side']['learning_label_path'])
+
+new_d['bottom']['learning_label_path'] = old_d['bottom']['learning_label_path'].replace(old_project_name, new_project_name)
+shutil.copy2(old_d['bottom']['learning_label_path'], new_d['bottom']['learning_label_path'])
+
+write_json(new_json_path, new_d)
+
 
 # カメラの設定ファイルの書き換え
 with open(old_cap_setting_path, 'r') as f:
