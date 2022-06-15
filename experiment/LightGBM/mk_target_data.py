@@ -1,5 +1,3 @@
-from asyncore import read
-from turtle import position
 from func.video2memmap import video2memmap
 from func.feature_extraction import ExtractFeatures
 import numpy as np
@@ -33,11 +31,13 @@ if __name__ == '__main__':
     frame_num = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
     
     control_dict = read_json(json_path)
     control_dict[position_dir_name]['video_width'] = width
     control_dict[position_dir_name]['video_height'] = height
     control_dict[position_dir_name]['video_frame_num'] = frame_num
+    control_dict[position_dir_name]['video_fps'] = fps
     write_json(json_path, control_dict)
     
     # extract features from improvement video
