@@ -5,6 +5,11 @@ import os
 import numpy as np
 from tqdm import tqdm
 import math
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+from util.my_json import read_json, write_json
+from util.txt_replacement import extract_txt
+
 
 def all_remove(arr, value):
     while value in arr:
@@ -47,28 +52,40 @@ def improve_index_list(index_list, fpp, fpi):
     return improved_list
 
 if __name__ == '__main__':
-    os.chdir(input('input cwd >'))
-    memmap_path = input('input x >')
-    model_path = input('input model >')
-    input_size = 5 # 入力のサイズ
-    width = 960 # フレームの幅
-    height = 1280 # フレームの高さ
-    fps = 220 # fps
-    spp = 0.5 # second per pulse
+    project_dir_path = input('input project dir path >')
+    position = input('input position (side or bottom) >')
+    json_path = os.path.join(project_dir_path, 'system', 'control_dict.json')
+    control_dict = read_json(json_path)
+    cwd = control_dict[position]['data_2_memmap_dir_path'] # ここにバグありそう
+    os.chdir(cwd)
+    target_feature_path = control_dict[position]['target_feature_path']
+    model_path = control_dict[position]['LightGBM_model_path']
+    input_size = control_dict[position]['features_num'] # 入力のサイズ
+    width = control_dict[position]['video_width'] # フレームの幅
+    height = control_dict[position]['video_height'] # フレームの高さ
+    fps = control_dict[position]['video_fps'] # fps
+    video_mem_path = control_dict[position]['target_memmap_path']
+    
+    
+    with open(os.path.join(os.path.dirname(__file__), '..', '..', 'laser_blinking', 'laser_blinking.ino'), 'r') as f:
+        arduino_src = f.read()
+    cooldown_time = int(extract_txt(arduino_src, 'int cooldown_time = ', ';')[0])/1000
+    spp = int(extract_txt(arduino_src, 'int turn_on_time = ', ';')[0])/1000 # second per pulse
+    itr_time = cooldown_time + 2*spp
     fpp = fps*spp # frame per pulse
-    fpi = fps*3 # frame per one iteration
-    video_mem_path = input('input target memmap >')
+    fpi = fps*itr_time # frame per one iteration
+    
     
     # モデルの読み込み
     with open(model_path, 'rb') as f:
         clf = pickle.load(f)
     
     # 入力と正解ラベルの読み込み
-    x = np.memmap(memmap_path, dtype='float32', mode='r').reshape(-1, input_size)
+    x = np.memmap(target_feature_path, dtype='float32', mode='r').reshape(-1, input_size)
     y = clf.predict(x)
     
     # 動画をmemmapに変換したデータを読み込み
-    video_mem = np.memmap(video_mem_path, dtype='uint8', mode='r').reshape(-1, width, height)
+    video_mem = np.memmap(video_mem_path, dtype='uint8', mode='r').reshape(-1, height, width)
     
     index_list = index_block(y, 2) # 2の状態のフレームのインデックスをまとめたリストを作成
     index_list = improve_index_list(index_list, fpp, fpi) # 作成したリストの誤判定を丸める
