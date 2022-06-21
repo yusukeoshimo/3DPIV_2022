@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 
 if __name__ == '__main__':
     # dir_path = input('input dir path saved memmap >')
-    dir_path = r'c:\Users\yusuk\Desktop\3DPIV_2022\project\project_2022_6_15_11_55_58\side\data_2\memmap'
+    dir_path = input('input dir path saved data_2_memmap >')
     files = os.listdir(dir_path)
     paths = [os.path.join(dir_path, file_name) for file_name in files]
     
