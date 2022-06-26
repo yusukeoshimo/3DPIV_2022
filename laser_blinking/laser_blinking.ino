@@ -17,7 +17,7 @@ void loop() {
   delay(turn_on_time);
   digitalWrite(LASER1,LOW);
 
-  delay(split_time);
+  //delay(split_time);
 
   digitalWrite(LASER2,HIGH);
   delay(turn_on_time);
