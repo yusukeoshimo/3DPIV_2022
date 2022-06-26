@@ -26,6 +26,10 @@ class ExtractFeatures():
     def extract_all_values(self, size): #size=(H, W)
         resize_arr = cv2.resize(self.arr, size).reshape(-1)
         self.features = np.hstack((self.features, resize_arr))
+        
+    def extract_over_threshold(self, threshold):
+        num_over_threshold = np.count_nonzero(self.arr >= threshold)
+        self.features = np.hstack((self.features, num_over_threshold))
 
 
 if __name__ == '__main__':
