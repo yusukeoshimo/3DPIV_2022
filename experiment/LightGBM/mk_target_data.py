@@ -44,9 +44,12 @@ if __name__ == '__main__':
     arr = np.memmap(target_memmap, dtype='uint8', mode='r').reshape(-1, height, width)
     for i, img in enumerate(tqdm(arr)):
         ext = ExtractFeatures(img)
-        ext.extract_std(0.1)
-        ext.extract_mean()
-        ext.extract_all_values((3, 1))
+        # ext.extract_std(0.1)
+        # ext.extract_mean()
+        # ext.extract_all_values((3, 1))
+        ext.extract_over_threshold(200)
+        ext.extract_over_threshold(150)
+        ext.extract_over_threshold(100)
         if i == 0:
             target_feature = 'target_features_{}.npy'.format(ext.features.shape[0])
             new_arr = np.memmap(target_feature, dtype='float32', mode='w+', shape=(arr.shape[0], ext.features.shape[0]))
