@@ -11,10 +11,14 @@ from util.my_json import read_json, apend_json, write_json
 
 
 def my_classifier(x, y):
-    clf = lgbm.LGBMClassifier(objective='multiclass',
+    clf = lgbm.LGBMClassifier(objective='binary',
                               num_leaves=40,
                               min_child_samples=100,
                               max_depth=2)
+    # clf = lgbm.LGBMClassifier(objective='multiclass',
+    #                           num_leaves=40,
+    #                           min_child_samples=100,
+    #                           max_depth=2)
     clf.fit(x, y)
     return clf
 
