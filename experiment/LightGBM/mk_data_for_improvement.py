@@ -35,14 +35,14 @@ if __name__ == '__main__':
     feature_num = control_dict[position]['features_num']
     
     # img2memmap
-    appending_dir_list = ['appending_{}'.format(i) for i in range(3)]
-    appending_memmap_list = ['appending_{}.npy'.format(i) for i in range(3)]
+    appending_dir_list = ['appending_{}'.format(i) for i in range(2)]
+    appending_memmap_list = ['appending_{}.npy'.format(i) for i in range(2)]
     for i, appending_dir in enumerate(appending_dir_list):
         img2memmap(appending_dir, appending_memmap_list[i])
     
     # make label
     file_num_list = [sum(os.path.isfile(os.path.join(DIR, name)) for name in os.listdir(DIR)) for DIR in appending_dir_list]
-    appending_output_list = ['appending_output_{}.npy'.format(i) for i in range(3)]
+    appending_output_list = ['appending_output_{}.npy'.format(i) for i in range(2)]
     for i, file_path in enumerate(appending_dir_list):
         mk_label(file_num_list[i], int(i), appending_output_list[i])
     
@@ -62,9 +62,9 @@ if __name__ == '__main__':
     arr = np.memmap(appending_raw_data, dtype='uint8', mode='r').reshape(-1, video_height, video_width)
     for i, img in enumerate(tqdm(arr)):
         ext = ExtractFeatures(img)
-        ext.extract_std(0.1)
-        ext.extract_mean()
-        ext.extract_all_values((3, 1))
+        ext.extract_over_threshold(200)
+        ext.extract_over_threshold(150)
+        ext.extract_over_threshold(100)
         if i == 0:
             appending_feature_path = 'appending_features_{}.npy'.format(ext.features.shape[0])
             new_arr = np.memmap(appending_feature_path, dtype='float32', mode='w+', shape=(arr.shape[0], ext.features.shape[0]))
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     # stack features (preleaning+appending)
     relearning_input_list = [prelearning_input, appending_feature_path]
     relearning_input = 'learning_input_{}_{}_{}_{}_{}_{}.npy'.format(year, month, day, hour, minute, second)
-    stack_memmap(relearning_input_list, relearning_input, 1, feature_num)
+    stack_memmap(relearning_input_list, relearning_input, 1, feature_num, dtype='float32')
     del new_arr
     gc.collect()
     os.remove(appending_feature_path)
