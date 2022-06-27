@@ -26,7 +26,10 @@ if __name__ == '__main__':
     for i, video_path in enumerate(prelearning_video_list):
         cap = cv2.VideoCapture(video_path)
         frame_num = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        label = i
+        if i == 0:
+            label = 0
+        else:
+            label = 1
         prelearning_label = prelearning_label_list[i]
         mk_label(frame_num, label, prelearning_label)
     
@@ -49,9 +52,12 @@ if __name__ == '__main__':
     arr = np.memmap(stack_prelearning_memap_path, dtype='uint8', mode='r').reshape(-1, height, width)
     for i, img in enumerate(tqdm(arr)):
         ext = ExtractFeatures(img)
-        ext.extract_std(0.1)
-        ext.extract_mean()
-        ext.extract_all_values((3, 1))
+        # ext.extract_std(0.1)
+        # ext.extract_mean()
+        # ext.extract_all_values((3, 1))
+        ext.extract_over_threshold(200)
+        ext.extract_over_threshold(150)
+        ext.extract_over_threshold(100)
         if i == 0:
             feature_path = r'prelearning_features_{}.npy'.format(ext.features.shape[0])
             new_arr = np.memmap(feature_path, dtype='float32', mode='w+', shape=(arr.shape[0], ext.features.shape[0]))
