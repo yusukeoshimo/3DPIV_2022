@@ -31,26 +31,6 @@ def index_block(arr, value):
     
     return [i for i in classificate_list if i != []] # [[value, ..., value], ..., [value, ..., value]]
 
-def improve_index_list(index_list, fpp, fpi):
-    # index_list: [[idx1, ..., idxk], ..., [idxl, ..., idxm]]
-    # fpp : frame per one pulse
-    # fpi : frame per iteration
-    fpp = math.ceil(fpp)
-    improved_list = []
-    for i, indexes in enumerate(index_list):
-        if i == 0:
-            if abs((len(indexes)-fpp)/fpp) <= 0.1:
-                start_point = indexes[0]
-                improved_list.append(list(range(start_point, start_point+fpp)))
-            else:
-                exit('!!! my error 1 !!!')
-        else:
-            print(abs((indexes[0]-(start_point+fpi))/fpi))
-            if abs((indexes[0]-(start_point+fpi))/fpi) <= 0.1:
-                start_point = indexes[0]
-                improved_list.append(list(range(start_point, start_point+fpp)))
-    return improved_list
-
 if __name__ == '__main__':
     project_dir_path = input('input project dir path >')
     position = input('input position (side or bottom) >')
@@ -72,8 +52,9 @@ if __name__ == '__main__':
     cooldown_time = int(extract_txt(arduino_src, 'int cooldown_time = ', ';')[0])/1000
     spp = int(extract_txt(arduino_src, 'int turn_on_time = ', ';')[0])/1000 # second per pulse
     itr_time = cooldown_time + 2*spp
-    fpp = fps*spp # frame per pulse
-    fpi = fps*itr_time # frame per one iteration
+    fpp = int(fps*spp) # frame per pulse
+    fpi = int(fps*itr_time) # frame per one iteration
+    fpc = int(fps*cooldown_time) # frame per cool_time
     
     
     # モデルの読み込み
@@ -87,21 +68,27 @@ if __name__ == '__main__':
     # 動画をmemmapに変換したデータを読み込み
     video_mem = np.memmap(video_mem_path, dtype='uint8', mode='r').reshape(-1, height, width)
     
-    index_list = index_block(y, 2) # 2の状態のフレームのインデックスをまとめたリストを作成
-    index_list = improve_index_list(index_list, fpp, fpi) # 作成したリストの誤判定を丸める
+    index_list = index_block(y, 0) # 0の状態のフレームのインデックスをまとめたリストを作成
+    index_list = [i for i in index_list if len(i) >= 0.1*fpc] # first pulse と second pulse の間の0状態のフレームを取り除く
+    del index_list[-1] # 右端の0の状態のindexを削除する
+    
+    # 誤分類の確認
+    for i, index in enumerate(index_list):
+        if i != len(index_list)-1:
+            next_index = index_list[i+1]
+            if abs(2*fpp-((next_index[0]-1)-(index[-1]+1)+1))/(2*fpp) >= 0.1:
+                exit('誤分類の可能性あり：{}~{}'.format(index[-1], next_index[0]))
     
     # 作成したリストのフレームのみをmemmapに書き込む
     for i, index in enumerate(tqdm(index_list)):
-        data = video_mem[index]
+        start_point = index[-1] + 1
+        end_point = start_point+(2*fpp)
+        pulse_frames = video_mem[start_point:end_point]
+        if position == 'side':
+            data = pulse_frames[-fpp:]
+        if position == 'bottom':
+            data = pulse_frames[:fpp]
         size = data.shape
         file_name = '{}_{}.npy'.format(i, size[0])
         arr = np.memmap(file_name, dtype='uint8', mode='w+', shape=size)
         arr[:] = data
-    
-    # 誤判定が無いか確認する
-    fpp = fps*spp
-    print('誤分類が無いか確認中...')
-    for i, indexes in enumerate(index_list):
-        if len(indexes) <= fpp*0.9:
-            print('誤分類：{}'.format(i))
-            print('LightGBMをトレーニングし直してください')
