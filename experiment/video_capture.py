@@ -10,16 +10,24 @@ project_dir_path = input('input project dir path >')
 json_path = os.path.join(project_dir_path, 'system', 'control_dict.json')
 
 # 動画ファイル保存用の設定
-fps = 220                    # カメラのFPSを取得
+fps = 120                    # カメラのFPSを取得
 w = 640              # カメラの横幅を取得
-h = 480             # カメラの縦幅を取得
+h = 240             # カメラの縦幅を取得
 fourcc = cv2.VideoWriter_fourcc('Y', '8', '0', '0')        # 動画保存時のfourcc設定（mp4用）
 
 camera0 = cv2.VideoCapture(0)                              # カメラCh.(ここでは0)を指定
+camera0.set(cv2.CAP_PROP_FOURCC, fourcc)
+camera0.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+camera0.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+camera0.set(cv2.CAP_PROP_FPS, fps)
 video_path_side = os.path.join(project_dir_path, 'side', 'raw_video', '30120025.avi')
 video = cv2.VideoWriter(video_path_side, fourcc, fps, (w, h))  # 動画の仕様（ファイル名、fourcc, FPS, サイズ）
 
-camera1 = cv2.VideoCapture(1)
+camera1 = cv2.VideoCapture(2)
+camera1.set(cv2.CAP_PROP_FOURCC, fourcc)
+camera1.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+camera1.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+camera1.set(cv2.CAP_PROP_FPS, fps)
 video_path_bottom = os.path.join(project_dir_path, 'bottom', 'raw_video', '30120023.avi')
 video1 = cv2.VideoWriter(video_path_bottom, fourcc, fps, (w, h))  # 動画の仕様（ファイル名、fourcc, FPS, サイズ）
 
@@ -31,7 +39,7 @@ while True:
     if (ret0 == True ) :
         cv2.imshow('camera0', frame0) # フレームを画面に表示　　　　　 
         video.write(frame0) # 動画を1フレームずつ保存する
-
+    
     ret1, frame1 = camera1.read() # フレームを取得
     if (ret1 == True ) :
         cv2.imshow('camera1', frame1) # フレームを画面に表示
