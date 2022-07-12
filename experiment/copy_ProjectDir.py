@@ -18,9 +18,6 @@ new_project_path = os.path.join(pasted_dir, new_project_name)
 old_json_path = os.path.join(copied_path, 'system', 'control_dict.json')
 new_json_path = os.path.join(new_project_path, 'system', 'control_dict.json')
 
-old_cap_setting_path = os.path.join(copied_path, 'system', 'camera_settings.iccf')
-new_cap_setting_path = os.path.join(new_project_path, 'system', 'camera_settings.iccf')
-
 old_side_LightGBM_path = os.path.join(copied_path, 'side', 'LightGBM', 'my_LightGBM.pkl')
 old_bottom_LightGBM_path = os.path.join(copied_path, 'bottom', 'LightGBM', 'my_LightGBM.pkl')
 new_side_LightGBM_path = os.path.join(new_project_path, 'side', 'LightGBM', 'my_LightGBM.pkl')
@@ -82,28 +79,3 @@ shutil.copy2(old_d['bottom']['learning_label_path'], new_d['bottom']['learning_l
 
 write_json(new_json_path, new_d)
 
-
-# カメラの設定ファイルの書き換え
-with open(old_cap_setting_path, 'r') as f:
-    file_str = f.read()
-
-old_path_list = extract_txt(file_str, '<filename>', '</filename>')
-
-new_path_list = []
-for i, old_path in enumerate(old_path_list):
-    old_project_dir_name = old_path.split('\\')[-4] # 古いパスのケツから4番目のディレクトリ．今回の場合, project_y_m_d_h_s.
-    new_path = old_path.replace(old_project_dir_name, new_project_name)
-    new_path_list.append(new_path)
-
-for i, old_path in enumerate(old_path_list):
-    file_str = file_str.replace('<filename>'+old_path+'</filename>', '<filename>'+new_path_list[i]+'</filename>')
-with open(new_cap_setting_path, 'w') as f:
-    f.write(file_str)
-
-# jsonファイルにraw_videoのパスを追記
-new_d = read_json(new_json_path)
-for new_path in new_path_list:
-    position_dir_name = new_path.split('\\')[-3]
-    raw_video_name = new_path.split('\\')[-1]
-    new_d[position_dir_name]['raw_video_path'] = new_path
-write_json(new_json_path, new_d)
