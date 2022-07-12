@@ -3,7 +3,7 @@
 
 int turn_on_time = 500;
 int split_time = 3;
-int cooldown_time = 2000;
+int cooldown_time = 100;
 
 void setup() {
   pinMode(LASER1, OUTPUT);
@@ -13,6 +13,8 @@ void setup() {
 }
 
 void loop() {
+  delay(cooldown_time); 
+  
   digitalWrite(LASER1,HIGH);
   delay(turn_on_time);
   digitalWrite(LASER1,LOW);
@@ -22,6 +24,4 @@ void loop() {
   digitalWrite(LASER2,HIGH);
   delay(turn_on_time);
   digitalWrite(LASER2,LOW);
-
-  delay(cooldown_time); 
 }
