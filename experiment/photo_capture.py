@@ -13,16 +13,20 @@ print('enter: 写真撮影＆保存')
 print('q: プログラム終了')
 
 # 動画ファイル保存用の設定
-fps = 220                    # カメラのFPSを取得
+fps = 120                    # カメラのFPSを取得
 w = 640              # カメラの横幅を取得
-h = 480             # カメラの縦幅を取得
+h = 240             # カメラの縦幅を取得
 fourcc = cv2.VideoWriter_fourcc('Y', '8', '0', '0')        # 動画保存時のfourcc設定（mp4用）
 
 if position == 'side':
     camera_order = 0
 elif position == 'bottom':
-    camera_order = 1
+    camera_order = 2
 camera = cv2.VideoCapture(camera_order)                              # カメラCh.(ここでは0)を指定
+camera.set(cv2.CAP_PROP_FOURCC, fourcc)
+camera.set(cv2.CAP_PROP_FRAME_WIDTH, w)
+camera.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
+camera.set(cv2.CAP_PROP_FPS, fps)
 
 # 撮影＝ループ中にフレームを1枚ずつ取得（qキーで撮影終了）
 i = 0
