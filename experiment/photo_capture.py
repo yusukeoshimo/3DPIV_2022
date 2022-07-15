@@ -8,6 +8,7 @@ from util.my_json import read_json, write_json
 
 position = input('which camera is on? (side or bottom) >')
 save_dir = input('input save dir >')
+save_name = input('input save name >')
 
 print('enter: 写真撮影＆保存')
 print('q: プログラム終了')
@@ -29,15 +30,14 @@ camera.set(cv2.CAP_PROP_FRAME_HEIGHT, h)
 camera.set(cv2.CAP_PROP_FPS, fps)
 
 # 撮影＝ループ中にフレームを1枚ずつ取得（qキーで撮影終了）
-i = 0
 while True:
     ret, frame = camera.read() # フレームを取得
     cv2.imshow('camera', frame) # フレームを画面に表示
     
     # エンターキーで画像保存
     if cv2.waitKey(1) == 13:
-        cv2.imwrite(os.path.join(save_dir, '{}.bmp'.format(i)), frame)
-        i += 1
+        cv2.imwrite(os.path.join(save_dir, '{}.bmp'.format(save_name)), frame)
+        break
     
     # キー操作があればwhileループを抜ける
     if cv2.waitKey(1) & 0xFF == ord('q'):
