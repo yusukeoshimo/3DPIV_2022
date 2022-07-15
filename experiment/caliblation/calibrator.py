@@ -7,6 +7,8 @@ import json
 from PIL import Image
 import glob
 from tqdm import tqdm
+sys.path.append(os.path.join(os.path.dirname(__file__), '..\..'))
+from util.my_json import read_json, apend_json, write_json
 
 # ある単語とある単語の間の単語をjsonに保存する関数 （注）文末にある単語を選択するときは back= '\n'
 def txt2json(txt_path, front, back, mode, json_path, data_name):
@@ -131,32 +133,29 @@ def video_processing(original_video_path, calibed_video_path, f, output_size):
 
 if __name__ == '__main__':
     
-    position_dir = input('input bottom or side dir path >')
-    os.chdir(position_dir)
+    project_dir_path = input('input project dir path >')
+    position_dir_name = input('input bottom or side >')
+    os.chdir(os.path.join(project_dir_path, position_dir_name))
     
-    calib_path = os.path.join('calibration','新規プロジェクト','Cam01','Calib01','Calibration.cal')
-    json_path = os.path.join('extracted_data','data.json')
+    calib_path = os.path.join('calibration','Cam01','Calib01','Calibration.cal')
+    json_path = os.path.join(project_dir_path, 'system', 'control_dict.json')
     csv_path = os.path.join('extracted_data','grid.csv')
-    orignal_image_path = glob.glob(os.path.join('original_image', '*.bmp'))[0]
+    orignal_image_path = os.path.join('calib_board', 'off.bmp')
     calibed_image_path = os.path.join('calibrated_image','mapped_{}.bmp'.format(os.path.splitext(os.path.basename(orignal_image_path))[0]))
-    orignal_video_path = glob.glob(os.path.join('original_video', '*.avi'))[0]
+    orignal_video_path = glob.glob(os.path.join('raw_video', '*.avi'))[0]
     calibed_video_path = os.path.join('calibrated_video','mapped_{}.avi'.format(os.path.splitext(os.path.basename(orignal_video_path))[0]))
     
-    # data.jsonを読み込み
-    with open(json_path, 'r') as f:
-        data_dict = json.load(f)
-    
-    # 再校正するときだけ校正データをextracted_dirに抽出する
-    if bool(data_dict['re-calib']):
-        txt2json(calib_path, 'Grid step in miri meter dxm=', '\n', 'a', json_path, 'grid_len_phys')
+    control_dict = read_json(json_path)
+    if control_dict['recalib_bool'] == True:
         txt2csv(calib_path, 'Error distribution in physical coordinate', 'RMS', csv_path)
     
-    
-    with open(json_path, 'r') as f:
-        data_dict = json.load(f)
+    data_dict = {'grid_len_phys':5,
+                 'grid_len_pix':32}
 
     calib = calibrator(grid_len_phys=float(data_dict['grid_len_phys']), grid_len_pix=int(data_dict['grid_len_pix']), csv_path=csv_path)
-    calib.pre_processing()
+    
+    if control_dict['recalib_bool'] == True:
+        calib.pre_processing()
     
     image = cv2.imread(orignal_image_path, 0)
     image = calib.transpose(image)
