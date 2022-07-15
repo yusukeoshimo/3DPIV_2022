@@ -79,3 +79,32 @@ shutil.copy2(old_d['bottom']['learning_label_path'], new_d['bottom']['learning_l
 
 write_json(new_json_path, new_d)
 
+recalib_bool = input('recalib? (y or n) >')
+for position in ['side', 'bottom']:
+    if recalib_bool == 'y':
+        recalib_bool = True
+        old_calibration_path = os.path.join(copied_path, position, 'calibration')
+        new_calibration_path = os.path.join(new_project_path, position, 'calibration')
+        # di5ファイルの書き換えと保存
+        with open(os.path.join(old_calibration_path, 'calibration.di5')) as f:
+            txt = f.read()
+        file_path = extract_txt(txt, '<ProjectPath>', '</ProjectPath>')[0]
+        file_list = file_path.split('\\')
+        file_list[-3] = new_project_name
+        txt.replace(file_path, winpath.join(*file_list))
+        with open(os.path.join(new_calibration_path, 'calibration.di5'), mode='w') as f:
+            f.write(txt)
+        # 校正のための参照ファイルをコピー
+        shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'))
+        shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'))
+        shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'))
+        shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'))
+        shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'), os.path.join(new_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'))
+        
+    elif recalib_bool == 'n':
+        recalib_bool = False
+        shutil.copy2(os.path.join(copied_path, position, 'extracted_data', 'grid.csv'), os.path.join(new_project_path, position, 'extracted_data', 'grid.csv'))
+
+    new_d = read_json(new_json_path)
+    new_d['recalib_bool'] = recalib_bool
+    write_json(new_json_path, new_d)
