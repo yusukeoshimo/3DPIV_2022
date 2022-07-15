@@ -24,10 +24,11 @@ def index_block(arr, value):
     list_2 = []
     for i, label in enumerate(arr):
         if label != value:
-            list_2 = []
             classificate_list.append(list_2)
+            list_2 = []
         else:
             list_2.append(i)
+    classificate_list.append(list_2)
     
     return [i for i in classificate_list if i != []] # [[value, ..., value], ..., [value, ..., value]]
 
@@ -70,6 +71,7 @@ if __name__ == '__main__':
     
     index_list = index_block(y, 0) # 0の状態のフレームのインデックスをまとめたリストを作成
     index_list = [i for i in index_list if len(i) >= 0.1*fpc] # first pulse と second pulse の間の0状態のフレームを取り除く
+    del index_list[-1] # 右端の0の状態のindexを削除する
     del index_list[-1] # 右端の0の状態のindexを削除する
     
     # 誤分類の確認
