@@ -11,10 +11,6 @@ from util.my_json import read_json, write_json
 from util.txt_replacement import extract_txt
 
 
-def all_remove(arr, value):
-    while value in arr:
-        arr.remove(value)
-
 def index_block(arr, value):
     # arr: 1次元配列
     # value: 取得したい値．
@@ -32,31 +28,9 @@ def index_block(arr, value):
     
     return [i for i in classificate_list if i != []] # [[value, ..., value], ..., [value, ..., value]]
 
-if __name__ == '__main__':
-    project_dir_path = input('input project dir path >')
-    position = input('input position (side or bottom) >')
-    json_path = os.path.join(project_dir_path, 'system', 'control_dict.json')
-    control_dict = read_json(json_path)
-    cwd = control_dict[position]['data_2_memmap_dir_path'] # ここにバグありそう
-    os.chdir(cwd)
-    target_feature_path = control_dict[position]['target_feature_path']
-    model_path = control_dict[position]['LightGBM_model_path']
-    input_size = control_dict[position]['features_num'] # 入力のサイズ
-    width = control_dict[position]['video_width'] # フレームの幅
-    height = control_dict[position]['video_height'] # フレームの高さ
-    fps = control_dict[position]['video_fps'] # fps
-    video_mem_path = control_dict[position]['target_memmap_path']
-    
-    
-    with open(os.path.join(os.path.dirname(__file__), '..', '..', 'laser_blinking', 'laser_blinking.ino'), 'r') as f:
-        arduino_src = f.read()
-    cooldown_time = int(extract_txt(arduino_src, 'int cooldown_time = ', ';')[0])/1000
-    spp = int(extract_txt(arduino_src, 'int turn_on_time = ', ';')[0])/1000 # second per pulse
-    itr_time = cooldown_time + 2*spp
-    fpp = int(fps*spp) # frame per pulse
-    fpi = int(fps*itr_time) # frame per one iteration
+def main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, get_pulse, cooldown_time, turn_on_time):
+    fpp = int(fps*turn_on_time) # frame per pulse
     fpc = int(fps*cooldown_time) # frame per cool_time
-    
     
     # モデルの読み込み
     with open(model_path, 'rb') as f:
@@ -86,11 +60,26 @@ if __name__ == '__main__':
         start_point = index[-1] + 1
         end_point = start_point+(2*fpp)
         pulse_frames = video_mem[start_point:end_point]
-        if position == 'side':
-            data = pulse_frames[-fpp:]
-        if position == 'bottom':
+        if get_pulse == 'first':
             data = pulse_frames[:fpp]
+        if get_pulse == 'second':
+            data = pulse_frames[-fpp:]
         size = data.shape
-        file_name = '{}_{}.npy'.format(i, size[0])
-        arr = np.memmap(file_name, dtype='uint8', mode='w+', shape=size)
+        save_path = os.path.join(save_dir, '{}_{}.npy'.format(i, size[0]))
+        arr = np.memmap(save_path, dtype='uint8', mode='w+', shape=size)
         arr[:] = data
+
+if __name__ == '__main__':
+    save_dir = input('input save dir >')
+    model_path = input('input LightGBM model path >')
+    target_feature_path = input('input feature path >')
+    input_size = 3 # 入力のサイズ
+    video_mem_path = input('input video memmap path >')
+    width = 1104 # フレームの幅
+    height = 168 # フレームの高さ
+    fps = 120 # fps
+    get_pulse = 'second'
+    cooldown_time = 0.1
+    turn_on_time = 0.5
+    
+    main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, get_pulse, cooldown_time, turn_on_time)
