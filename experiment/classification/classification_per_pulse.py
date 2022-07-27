@@ -28,7 +28,7 @@ def index_block(arr, value):
     
     return [i for i in classificate_list if i != []] # [[value, ..., value], ..., [value, ..., value]]
 
-def main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, get_pulse, cooldown_time, turn_on_time):
+def main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, pulse_order, cooldown_time, turn_on_time):
     fpp = int(fps*turn_on_time) # frame per pulse
     fpc = int(fps*cooldown_time) # frame per cool_time
     
@@ -60,9 +60,9 @@ def main(save_dir, model_path, target_feature_path, input_size, video_mem_path, 
         start_point = index[-1] + 1
         end_point = start_point+(2*fpp)
         pulse_frames = video_mem[start_point:end_point]
-        if get_pulse == 'first':
+        if pulse_order == 'first':
             data = pulse_frames[:fpp]
-        if get_pulse == 'second':
+        if pulse_order == 'second':
             data = pulse_frames[-fpp:]
         size = data.shape
         save_path = os.path.join(save_dir, '{}_{}.npy'.format(i, size[0]))
@@ -78,8 +78,8 @@ if __name__ == '__main__':
     width = 1104 # フレームの幅
     height = 168 # フレームの高さ
     fps = 120 # fps
-    get_pulse = 'second'
+    pulse_order = 'second'
     cooldown_time = 0.1
     turn_on_time = 0.5
     
-    main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, get_pulse, cooldown_time, turn_on_time)
+    main(save_dir, model_path, target_feature_path, input_size, video_mem_path, width, height, fps, pulse_order, cooldown_time, turn_on_time)
