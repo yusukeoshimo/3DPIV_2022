@@ -3,14 +3,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-if __name__ == '__main__':
-    # dir_path = input('input dir path saved memmap >')
-    dir_path = input('input dir path saved data_2_memmap >')
-    width = 640
-    height = 240
-    frame = 60
-    fps = 120
-    turn_on_time = 0.5
+def main(dir_path, width, height, turn_on_time, fps):
+    frame = int(fps*turn_on_time)
     
     files = os.listdir(dir_path)
     paths = [os.path.join(dir_path, file_name) for file_name in files]
@@ -36,7 +30,17 @@ if __name__ == '__main__':
     plt.plot(time, df['mean'], color='black', label='mean',
              marker='o', markersize=2, markerfacecolor='blue', markeredgecolor="blue")
     plt.xlim((0, turn_on_time))
+    plt.ylim((0, 255))
     plt.fill_between(time, df['1_lower'], df['1_upper'], alpha=0.7, label="$1\sigma$", color='red')
     plt.fill_between(time, df['2_lower'], df['2_upper'], alpha=0.3, label="$2\sigma$", color='red')
     plt.legend(loc=1)
     plt.show()
+
+if __name__ == '__main__':
+    dir_path = input('input dir path saved memmap classified by pulse state >')
+    width = 1104
+    height = 168
+    turn_on_time = 0.5
+    fps = 120
+    
+    main(dir_path, width, height, turn_on_time, fps)
