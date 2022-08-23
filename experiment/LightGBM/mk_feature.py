@@ -1,5 +1,3 @@
-from func.video2memmap import video2memmap
-from func.feature_extraction import ExtractFeatures
 import numpy as np
 from tqdm import tqdm
 import os
@@ -7,6 +5,7 @@ import cv2
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..\..'))
 from util.my_json import read_json, apend_json, write_json
+from experiment.LightGBM.func.feature_extraction import ExtractFeatures
 
 class MkFeature():
     def main(self, feature_memmap_path, video_memmap_path, width, height):
