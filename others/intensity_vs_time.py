@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-def main(dir_path, width, height, turn_on_time, fps):
+def main(save_path, dir_path, width, height, turn_on_time, fps):
     frame = int(fps*turn_on_time)
     
     files = os.listdir(dir_path)
@@ -24,17 +24,19 @@ def main(dir_path, width, height, turn_on_time, fps):
     
     time = df.index.values/fps
     
+    fig = plt.figure()
     plt.title('intensity vs time')
     plt.xlabel('time')
     plt.ylabel('intensity')
     plt.plot(time, df['mean'], color='black', label='mean',
              marker='o', markersize=2, markerfacecolor='blue', markeredgecolor="blue")
     plt.xlim((0, turn_on_time))
-    plt.ylim((0, 255))
+    plt.ylim((0, 100))
     plt.fill_between(time, df['1_lower'], df['1_upper'], alpha=0.7, label="$1\sigma$", color='red')
     plt.fill_between(time, df['2_lower'], df['2_upper'], alpha=0.3, label="$2\sigma$", color='red')
     plt.legend(loc=1)
-    plt.show()
+    fig.savefig(save_path)
+    del fig
 
 if __name__ == '__main__':
     dir_path = input('input dir path saved memmap classified by pulse state >')
@@ -42,5 +44,6 @@ if __name__ == '__main__':
     height = 168
     turn_on_time = 0.5
     fps = 120
+    save_path = 'fig.png'
     
-    main(dir_path, width, height, turn_on_time, fps)
+    main(save_path, dir_path, width, height, turn_on_time, fps)
