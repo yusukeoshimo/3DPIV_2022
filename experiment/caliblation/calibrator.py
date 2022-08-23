@@ -7,6 +7,7 @@ import json
 from PIL import Image
 import glob
 from tqdm import tqdm
+import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..\..'))
 from util.my_json import read_json, apend_json, write_json
 
@@ -113,7 +114,7 @@ def video_processing(original_video_path, calibed_video_path, f, output_size):
         video_path = original_video_path
         cap = cv2.VideoCapture(video_path) #読み込む動画のパス
         fps = cap.get(cv2.CAP_PROP_FPS)
-        fourcc = cv2.VideoWriter_fourcc('m','p','4', 'v') #mp4フォーマット
+        fourcc = cv2.VideoWriter_fourcc(*int(cap.get(cv2.CAP_PROP_FOURCC)).to_bytes(4, 'little').decode('utf-8')) #mp4フォーマット
         video = cv2.VideoWriter(calibed_video_path, fourcc, fps, output_size) #書き込み先のパス、フォーマット、fps、サイズ
 
         for i in tqdm(range(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)))):
