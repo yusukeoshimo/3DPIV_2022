@@ -38,7 +38,6 @@ def mk_image(image_num,eq_coef,sigma_l,uxy,u_random,cx1,cx2,cx3,cy1,cy2,cy3,cz1,
     
     x = np.arange(width)
     y = np.arange(height).reshape(-1,1)
-   
     white_noise = random.uniform(0,255*0.01)
     luminance_array = np.sum(eq_coef*np.exp(-(z_p - depth/2)**2/sigma_l**2)*np.exp(-((x-x_p)**2+(y-y_p)**2)/(d_p/2)**2),axis=0)+white_noise # 輝度の計算
     image = luminance_array[size*(times - 1)//2:size*(times + 1)//2, size*(times - 1)//2:size*(times + 1)//2]
