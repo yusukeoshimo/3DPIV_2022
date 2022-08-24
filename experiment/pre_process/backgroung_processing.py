@@ -4,7 +4,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import cv2
 
-def extract_background(save_path, memmap_dir, w, h, left_cut, right_cut):
+def extract_background(memmap_dir, w, h, left_cut, right_cut):
     files = os.listdir(memmap_dir)
     paths = [os.path.join(memmap_dir, file_name) for file_name in files]
     
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     left_cut = 2
     right_cut = 2
     
-    background_img = extract_background(save_path, memmap_dir, w, h, left_cut, right_cut)
+    background_img = extract_background(memmap_dir, w, h, left_cut, right_cut)
     
     save_dir = input('input dir to save memmap >')
     memmap_dir = input('input memmap_dir >')
