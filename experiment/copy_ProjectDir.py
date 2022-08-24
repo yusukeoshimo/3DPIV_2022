@@ -30,68 +30,58 @@ def main():
     new_d['project_dir_path'] = new_project_path
     for position in ['side', 'bottom']:
         new_d[position] = {}
-        new_d[position]['LightGBM_dir_path'] = os.path.join(new_project_path, position, 'LightGBM')
-        new_d[position]['0_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', '0')
-        new_d[position]['1_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', '1')
-        new_d[position]['2_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', '2')
-        new_d[position]['appending_0_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', 'appending_0')
-        new_d[position]['appending_1_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', 'appending_1')
-        new_d[position]['appending_2_dir_path'] = os.path.join(new_project_path, position, 'LightGBM', 'appending_2')
-        new_d[position]['data_2_dir_path'] = os.path.join(new_project_path, position, 'data_2')
-        new_d[position]['data_2_memmap_dir_path'] = os.path.join(new_project_path, position, 'data_2', 'memmap')
-        write_json(new_json_path, new_d)
+    write_json(new_json_path, new_d)
 
     # LightGBMモデルのコピー，パスをjsonに追加
+    new_d = read_json(new_json_path)
     for position in ['side', 'bottom']:
         old_LightGBM_path = os.path.join(copied_path, position, 'LightGBM', 'my_LightGBM.pkl')
         new_LightGBM_path = os.path.join(new_project_path, position, 'LightGBM', 'my_LightGBM.pkl')
         shutil.copy2(old_LightGBM_path, new_LightGBM_path)
-        new_d = read_json(new_json_path)
         new_d[position]['LightGBM_model_path'] = new_LightGBM_path
-        write_json(new_json_path, new_d)
+    write_json(new_json_path, new_d)
 
     # LightGBMモデルの学習データをコピー
+    old_d = read_json(old_json_path)
+    new_d = read_json(new_json_path)
     for position in ['side', 'bottom']:
-        old_d = read_json(old_json_path)
-        new_d = read_json(new_json_path)
         # LightGBMモデルの入力データをコピー，パスをjsonに書き込み
         new_d[position]['learning_input_path'] = old_d[position]['learning_input_path'].replace(old_project_name, new_project_name)
         shutil.copy2(old_d[position]['learning_input_path'], new_d[position]['learning_input_path'])
         # LightGBMモデルのラベルデータをコピー，パスをjsonに書き込み
         new_d[position]['learning_label_path'] = old_d[position]['learning_label_path'].replace(old_project_name, new_project_name)
         shutil.copy2(old_d[position]['learning_label_path'], new_d[position]['learning_label_path'])
-        
-        write_json(new_json_path, new_d)
+    write_json(new_json_path, new_d)
 
-    recalib_bool = input('recalib? (y or n) >')
-    for position in ['side', 'bottom']:
-        if recalib_bool == 'y':
-            recalib_bool = True
-            old_calibration_path = os.path.join(copied_path, position, 'calibration')
-            new_calibration_path = os.path.join(new_project_path, position, 'calibration')
-            # di5ファイルの書き換えと保存
-            with open(os.path.join(old_calibration_path, 'calibration.di5')) as f:
-                txt = f.read()
-            file_path = extract_txt(txt, '<ProjectPath>', '</ProjectPath>')[0]
-            file_list = file_path.split('\\')
-            file_list[-3] = new_project_name
-            txt.replace(file_path, winpath.join(*file_list))
-            with open(os.path.join(new_calibration_path, 'calibration.di5'), mode='w') as f:
-                f.write(txt)
-            # 校正のための参照ファイルをコピー
-            shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'))
-            shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'))
-            shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'))
-            shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'))
-            shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'), os.path.join(new_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'))
+    # recalib_bool = input('recalib? (y or n) >')
+    # for position in ['side', 'bottom']:
+    #     if recalib_bool == 'y':
+    #         recalib_bool = True
+    #         old_calibration_path = os.path.join(copied_path, position, 'calibration')
+    #         new_calibration_path = os.path.join(new_project_path, position, 'calibration')
+    #         # di5ファイルの書き換えと保存
+    #         with open(os.path.join(old_calibration_path, 'calibration.di5')) as f:
+    #             txt = f.read()
+    #         file_path = extract_txt(txt, '<ProjectPath>', '</ProjectPath>')[0]
+    #         file_list = file_path.split('\\')
+    #         file_list[-3] = new_project_name
+    #         txt.replace(file_path, winpath.join(*file_list))
+    #         with open(os.path.join(new_calibration_path, 'calibration.di5'), mode='w') as f:
+    #             f.write(txt)
+    #         # 校正のための参照ファイルをコピー
+    #         shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibAtOnce.xml'))
+    #         shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'CalibrationParameters.xml'))
+    #         shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskImage.png'))
+    #         shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'), os.path.join(new_calibration_path, 'Cam01', 'Calib01', 'MaskObject.xml'))
+    #         shutil.copy2(os.path.join(old_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'), os.path.join(new_calibration_path, 'Cam01', 'Take01', 'ExtractedGrids.xml'))
             
-        elif recalib_bool == 'n':
-            recalib_bool = False
-            shutil.copy2(os.path.join(copied_path, position, 'extracted_data', 'grid.csv'), os.path.join(new_project_path, position, 'extracted_data', 'grid.csv'))
+    #     elif recalib_bool == 'n':
+    #         recalib_bool = False
+    #         shutil.copy2(os.path.join(copied_path, position, 'extracted_data', 'grid.csv'), os.path.join(new_project_path, position, 'extracted_data', 'grid.csv'))
 
-        new_d = read_json(new_json_path)
-        new_d['recalib_bool'] = recalib_bool
-        write_json(new_json_path, new_d)
+    #     new_d = read_json(new_json_path)
+    #     new_d['recalib_bool'] = recalib_bool
+    #     write_json(new_json_path, new_d)
         
 if __name__ == '__main__':
     main()
