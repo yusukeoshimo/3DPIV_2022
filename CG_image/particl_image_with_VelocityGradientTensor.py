@@ -114,7 +114,7 @@ def main():
 
 if __name__ == '__main__':
     save_dir = input('input save dir > ')
-    data_num = 10
+    data_num = int(input('input data num > '))
     input_dtype = np.uint8
     img_size = 32
     label_dtype = np.float16
