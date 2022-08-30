@@ -115,7 +115,7 @@ def main():
 if __name__ == '__main__':
     save_dir = input('input save dir > ')
     data_num = int(input('input data num > '))
-    input_dtype = np.uint8
+    input_dtype = np.float16
     img_size = 32
     label_dtype = np.float16
     input_mem_path = os.path.join(save_dir, 'input.npy')
@@ -126,7 +126,8 @@ if __name__ == '__main__':
         img_0, img_1, main_u, main_v, main_w = main()
         
         data = np.array([img_0, img_1])
-        data = data.transpose(1,2,0)
+        data = data.transpose(1,2,0) # チャンネルラスト
+        data = data.astype(input_dtype)/255 # 正規化
         input_memmap[i] = data
         
         label_memmap[i] = np.array([main_u, main_v, main_w]).astype(label_dtype)
