@@ -1,7 +1,30 @@
+from re import X
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, MaxPool2D
 import tensorflow as tf
 import numpy as np
+import math
+
+class FitGen(keras.utils.Sequence):
+    '''
+    https://qiita.com/simonritchie/items/d7168d1d9cea9ceb6af7
+    '''
+
+    def __init__(self, memmap_x, memmap_y, batch_size):
+        self.batch_size = batch_size
+        self.memmap_x = memmap_x
+        self.memmap_y = memmap_y
+        self.length = math.ceil(self.memmap_x.shape[0] / batch_size)
+    
+    def __getitem__(self, idx):
+        start_idx = idx * self.batch_size
+        last_idx = start_idx + self.batch_size
+        X = self.memmap_x[start_idx:last_idx]
+        y = self.memmap_y[start_idx:last_idx]
+        return X, y
+    
+    def __len__(self):
+        return self.length
 
 # データの形
 H, W, C = 32, 32, 2
@@ -9,14 +32,9 @@ label_num = 3
 
 # データの読み込み
 train_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\input.npy'
-x_train = np.memmap(train_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)
-x_train = np.array(x_train)
+x_train = np.memmap(train_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
 train_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\label.npy'
-y_train = np.memmap(train_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)
-y_train = np.array(y_train)[:,:2]
-
-# 画像の正規化
-x_train = x_train.astype(np.float16) / 255
+y_train = np.memmap(train_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
 
 # モデルの定義
 inputs = tf.keras.layers.Input(shape=(H,W,C), name="inputs")
@@ -41,16 +59,14 @@ model = keras.Model(inputs, outputs)
 model.compile(optimizer='adam',loss='mae')
 
 model.summary()
-model.fit(x_train, y_train, batch_size=200, epochs=200)
+model.fit_generator(generator=FitGen(x_train, y_train, batch_size=50), epochs=50)
 
 # 評価データに対する評価
 test_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_input.npy'
-x_test = np.memmap(test_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)
+x_test = np.memmap(test_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
 x_test = np.array(x_test)
-x_test = x_test.astype(np.float16)/255
 test_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_label.npy'
 y_test = np.memmap(test_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)
 y_test = np.array(y_test)[:,:2]
-
 test_loss = model.evaluate(x_test, y_test, verbose=0)
 print('test data loss:', test_loss)
