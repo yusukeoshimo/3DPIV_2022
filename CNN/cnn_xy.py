@@ -1,85 +1,56 @@
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense
+from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, MaxPool2D
 import tensorflow as tf
+import numpy as np
 
-#----------------------------
-# データの作成
-# 画像サイズ（高さ，幅，チャネル数）
-H, W, C = 28, 28, 1
+# データの形
+H, W, C = 32, 32, 2
+label_num = 3
 
-# MNISTデータの読み込み
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+# データの読み込み
+train_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\input.npy'
+x_train = np.memmap(train_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)
+x_train = np.array(x_train)
+train_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\label.npy'
+y_train = np.memmap(train_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)
+y_train = np.array(y_train)[:,:2]
 
 # 画像の正規化
-x_train = x_train.astype('float32') / 255
-x_test = x_test.astype('float32') / 255
+x_train = x_train.astype(np.float16) / 255
 
-# （データ数，高さ，幅，チャネル数）にrehspae
-x_train = x_train.reshape(x_train.shape[0], H, W, C)
-x_test = x_test.reshape(x_test.shape[0], H, W, C)
-#----------------------------
+# モデルの定義
+inputs = tf.keras.layers.Input(shape=(H,W,C), name="inputs")
+conv1 = Conv2D(filters=32, kernel_size=(3, 3))(inputs)
+conv1 = BatchNormalization()(conv1)
+conv1 = ReLU()(conv1)
+conv1 = MaxPool2D((2, 2))(conv1)
+conv2 = Conv2D(64, (3, 3))(conv1)
+conv2 = BatchNormalization()(conv2)
+conv2 = ReLU()(conv2)
+conv2 = MaxPool2D((2, 2))(conv2)
+conv3 = Conv2D(64, (3, 3))(conv2)
+conv3 = BatchNormalization()(conv3)
+conv3 = ReLU()(conv3)
+conv3_flat = Flatten()(conv3)
+fc1 = Dense(64,activation='relu')(conv3_flat)
+outputs = Dense(2,activation='linear')(fc1)
 
-#----------------------------
-# Tensor変数（tensorflow 1系風）を用いたネットワークの定義
-# - Input()を用いてTensorの初期化
-# - Conv2D()，BatchNormalization()，ReLU()，MaxPooling2D()，Flatten()，Dense()，Dropout()などを用いてTensorのグラフ構造を定義
-# - Model()を用いて，入力inputsから出力outputsまでのTensorのグラフ構造（ネットワーク）をインスタンス化
-# - compileメソッドを用いて，最適化方法（adam），損失関数（sparse_categorical_crossentropy），評価方法（accuracy）を設定
-def cnn(input_shape):
-    inputs = tf.keras.layers.Input(shape=input_shape, name="inputs")
+model = keras.Model(inputs, outputs)
 
-    # conv1
-    conv1 = tf.keras.layers.Conv2D(32, (3, 3))(inputs)
-    conv1 = tf.keras.layers.BatchNormalization()(conv1)
-    conv1 = tf.keras.layers.ReLU()(conv1)
-    conv1 = tf.keras.layers.MaxPool2D((2, 2))(conv1)
+# 学習方法の設定
+model.compile(optimizer='adam',loss='mae')
 
-    # conv2
-    conv2 = tf.keras.layers.Conv2D(64, (3, 3))(conv1)
-    conv2 = tf.keras.layers.BatchNormalization()(conv2)
-    conv2 = tf.keras.layers.ReLU()(conv2)
-    conv2 = tf.keras.layers.MaxPool2D((2, 2))(conv2)
-
-    # conv3
-    conv3 = tf.keras.layers.Conv2D(64, (3, 3))(conv2)
-    conv3 = tf.keras.layers.BatchNormalization()(conv3)
-    conv3 = tf.keras.layers.ReLU()(conv3)
-    
-    # fc1
-    conv3_flat = tf.keras.layers.Flatten()(conv3)
-    fc1 = tf.keras.layers.Dense(64,activation='relu')(conv3_flat)
-    
-    # fc2
-    outputs = tf.keras.layers.Dense(10,activation='softmax')(fc1)
-
-    # モデルの設定
-    model = tf.keras.Model(inputs, outputs)
-
-    # 学習方法の設定
-    model.compile(optimizer='adam',loss='sparse_categorical_crossentropy',metrics=['accuracy'])
-
-    return model
-#----------------------------
-
-#----------------------------
-# 学習
-# - cnn関数を実行しネットワークを定義
-# - fitで学習を実行
-model = cnn((H,W,C))
 model.summary()
-model.fit(x_train, y_train, batch_size=200, epochs=2)
-#----------------------------
+model.fit(x_train, y_train, batch_size=200, epochs=200)
 
-#----------------------------
 # 評価データに対する評価
-train_loss, train_accuracy = model.evaluate(x_train, y_train, verbose=0)
-print('Train data loss:', train_loss)
-print('Train data accuracy:', train_accuracy)
-#----------------------------
+test_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_input.npy'
+x_test = np.memmap(test_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)
+x_test = np.array(x_test)
+x_test = x_test.astype(np.float16)/255
+test_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_label.npy'
+y_test = np.memmap(test_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)
+y_test = np.array(y_test)[:,:2]
 
-#----------------------------
-# 学習データに対する評価
-test_loss, test_accuracy = model.evaluate(x_test, y_test, verbose=0)
-print('Test data loss:', test_loss)
-print('Test data accuracy:', test_accuracy)
-#----------------------------
+test_loss = model.evaluate(x_test, y_test, verbose=0)
+print('test data loss:', test_loss)
