@@ -1,3 +1,4 @@
+import os
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, MaxPool2D
 import tensorflow as tf
@@ -28,73 +29,77 @@ class FitGen(keras.utils.Sequence):
     def __len__(self):
         return self.length
 
-def create_model(mid_units):
-    H, W, C = 32, 32, 2
-    label_num = 3
-    # モデルの定義
-    inputs = tf.keras.layers.Input(shape=(H,W,C), name="inputs")
-    conv1 = Conv2D(filters=200, kernel_size=(8, 8), strides=4)(inputs)
-    conv1 = BatchNormalization()(conv1)
-    conv1 = ReLU()(conv1)
-    conv3_flat = Flatten()(conv1)
-    fc1 = Dense(200,activation='relu')(conv3_flat)
-    fc2 = Dense(mid_units[0], activation='relu')(fc1)
-    outputs = Dense(2, activation='linear')(fc2)
+class Objective():
+    def __init__(self, tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir):
+        self.tr_x_path = tr_x_path
+        self.tr_y_path = tr_y_path
+        self.val_x_path = val_x_path
+        self.val_y_path = val_y_path
+        self.save_dir = save_dir
+        self.best_n_model = {}
     
-    model = keras.Model(inputs, outputs)
-    
-    # 学習方法の設定
-    model.compile(optimizer='adam',loss='mae')
-    
-    model.summary()
-    
-    return model
+    def save_best_n_model(self, model, n, trial_order, val_loss):
+        save_path = os.path.join(self.save_dir, '{}_{}.h5'.format(trial_order, val_loss))
+        if len(self.best_n_model) < n:
+            model.save(save_path)
+            self.best_n_model[save_path] = val_loss
+        else:
+            if val_loss < max(self.best_n_model.values()):
+                os.remove(max(self.best_n_model)) # 一番損失値が大きいモデルを削除
+                model.save(save_path) # 性能を更新したモデルを保存
+                # best_n_modelを更新
+                del self.best_n_model[max(self.best_n_model)]
+                self.best_n_model[save_path] = val_loss
 
-def objective(trial):
+    
+    def __call__(self, trial):
     # データの形
-    H, W, C = 32, 32, 2
-    label_num = 3
+        H, W, C = 32, 32, 2
+        label_num = 3
 
-    # トレーニングデータの読み込み
-    train_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\input.npy'
-    x_train = np.memmap(train_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
-    train_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\label.npy'
-    y_train = np.memmap(train_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
-    # 検証用データの読み込み
-    test_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_input.npy'
-    x_validation = np.memmap(test_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
-    test_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_label.npy'
-    y_validation = np.memmap(test_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
+        # トレーニングデータの読み込み
+        x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
+        y_train = np.memmap(self.tr_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
+        # 検証用データの読み込み
+        x_validation = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
+        y_validation = np.memmap(self.val_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
 
-    # ハイーパーパラメータの定義
-    num_layer = 1
-    mid_unit_1 = trial.suggest_int(name='mid_units_1', low=50, high=300, step=1)
-    
-    # モデルの定義
-    inputs = tf.keras.layers.Input(shape=(H,W,C), name="inputs")
-    conv1 = Conv2D(filters=200, kernel_size=(8, 8), strides=4)(inputs)
-    conv1 = BatchNormalization()(conv1)
-    conv1 = ReLU()(conv1)
-    conv3_flat = Flatten()(conv1)
-    fc1 = Dense(200,activation='relu')(conv3_flat)
-    fc2 = Dense(mid_unit_1, activation='relu')(fc1)
-    outputs = Dense(2, activation='linear')(fc2)
-    # 層を組み立てる
-    model = keras.Model(inputs, outputs)
-    # 学習方法の設定
-    model.compile(optimizer='adam',loss='mae')
-    # モデルの表示
-    model.summary()
-    
-    # 学習
-    patience = 5
-    early_stopping = EarlyStopping(patience=patience, restore_best_weights=True)
-    model.fit_generator(generator=FitGen(x_train, y_train, batch_size=50),validation_data=(x_validation, y_validation), epochs=50, callbacks=[early_stopping])
-    
-    # 検証用データの損失地を計算
-    test_loss = model.evaluate(x_validation, y_validation, verbose=0)
-    return test_loss
+        # ハイーパーパラメータの定義
+        num_layer = 1
+        mid_unit_1 = trial.suggest_int(name='mid_units_1', low=50, high=300, step=1)
+        
+        # モデルの定義
+        inputs = tf.keras.layers.Input(shape=(H,W,C), name="inputs")
+        conv1 = Conv2D(filters=200, kernel_size=(8, 8), strides=4)(inputs)
+        conv1 = BatchNormalization()(conv1)
+        conv1 = ReLU()(conv1)
+        conv3_flat = Flatten()(conv1)
+        fc1 = Dense(200,activation='relu')(conv3_flat)
+        fc2 = Dense(mid_unit_1, activation='relu')(fc1)
+        outputs = Dense(2, activation='linear')(fc2)
+        # 層を組み立てる
+        model = keras.Model(inputs, outputs)
+        # 学習方法の設定
+        model.compile(optimizer='adam',loss='mae')
+        # モデルの表示
+        model.summary()
+        
+        # 学習
+        patience = 5
+        early_stopping = EarlyStopping(patience=patience, restore_best_weights=True)
+        model.fit_generator(generator=FitGen(x_train, y_train, batch_size=50),validation_data=(x_validation, y_validation), epochs=50, callbacks=[early_stopping])
+        
+        # 検証用データの損失地を計算
+        val_loss = model.evaluate(x_validation, y_validation, verbose=0)
+        self.save_best_n_model(model=model, n=1, trial_order=trial.number, val_loss=val_loss)
+        return val_loss
 
 if __name__ == '__main__':
+    tr_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\input.npy'
+    tr_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\label.npy'
+    val_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_input.npy'
+    val_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_label.npy'
+    save_dir = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn'
+    objective = Objective(tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir)
     study = optuna.create_study()
     study.optimize(objective, n_trials=3)
