@@ -38,19 +38,33 @@ class Objective():
         self.val_y_path = val_y_path
         self.save_dir = save_dir
         self.best_n_model = {}
+        self.best_n_history = {}
     
     def save_best_n_model(self, model, n, trial_order, val_loss):
-        save_path = os.path.join(self.save_dir, '{}_{}.h5'.format(trial_order, val_loss))
+        model_path = os.path.join(self.save_dir, '{}_{}.h5'.format(trial_order, val_loss))
         if len(self.best_n_model) < n:
-            model.save(save_path)
-            self.best_n_model[save_path] = val_loss
+            model.save(model_path)
+            self.best_n_model[model_path] = val_loss
         else:
             if val_loss < max(self.best_n_model.values()):
                 os.remove(max(self.best_n_model)) # 一番損失値が大きいモデルを削除
-                model.save(save_path) # 性能を更新したモデルを保存
+                model.save(model_path) # 性能を更新したモデルを保存
                 # best_n_modelを更新
                 del self.best_n_model[max(self.best_n_model)]
-                self.best_n_model[save_path] = val_loss
+                self.best_n_model[model_path] = val_loss
+    
+    def save_best_n_history(self, history, n, trial_order, val_loss):
+        history_path = os.path.join(self.save_dir, '{}_{}.csv'.format(trial_order, val_loss))
+        if len(self.best_n_history) < n:
+            pd.DataFrame(history.history).to_csv(history_path)
+            self.best_n_history[history_path] = val_loss
+        else:
+            if val_loss < max(self.best_n_history.values()):
+                os.remove(max(self.best_n_history)) # 一番損失値が大きいモデルを削除
+                pd.DataFrame(history.history).to_csv(history_path)
+                # best_n_historyを更新
+                del self.best_n_history[max(self.best_n_history)]
+                self.best_n_history[history_path] = val_loss
     
     def __call__(self, trial):
     # データの形
@@ -95,7 +109,8 @@ class Objective():
         
         # 検証用データの損失地を計算
         val_loss = model.evaluate(x_validation, y_validation, verbose=0)
-        self.save_best_n_model(model=model, n=1, trial_order=trial.number, val_loss=val_loss)
+        self.save_best_n_model(model=model, n=2, trial_order=trial.number, val_loss=val_loss)
+        self.save_best_n_history(history=history, n=2, trial_order=trial.number, val_loss=val_loss)
         return val_loss
 
 if __name__ == '__main__':
