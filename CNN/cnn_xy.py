@@ -8,6 +8,7 @@ import math
 from tensorflow.keras.optimizers import Adam
 from keras.callbacks import EarlyStopping
 import optuna
+from optuna.integration import KerasPruningCallback
 import pandas as pd
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from util.my_json import read_json, write_json
@@ -92,6 +93,8 @@ class Objective():
         H, W, C = 32, 32, 2
         label_num = 3
         
+        tf.keras.backend.clear_session()
+        
         # トレーニングデータの読み込み
         x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
         y_train = np.memmap(self.tr_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
@@ -128,12 +131,12 @@ class Objective():
         # 学習
         patience = 10
         early_stopping = EarlyStopping(patience=patience, restore_best_weights=True)
-        history = model.fit_generator(generator=FitGen(x_train, y_train, batch_size=50), validation_data=(x_validation, y_validation), epochs=500, callbacks=[early_stopping])
+        history = model.fit_generator(generator=FitGen(x_train, y_train, batch_size=50), validation_data=(x_validation, y_validation), epochs=500, callbacks=[early_stopping, KerasPruningCallback(trial, monitor='val_loss')])
         
         # 検証用データの損失地を計算
         val_loss = model.evaluate(x_validation, y_validation, verbose=0)
-        self.save_best_n_model(json_path='best_n_model.json',model=model, n=2, trial_order=trial.number, val_loss=val_loss)
-        self.save_best_n_history(json_path='best_n_history.json',history=history, n=2, trial_order=trial.number, val_loss=val_loss)
+        self.save_best_n_model(json_path='best_n_model.json', model=model, n=2, trial_order=trial.number, val_loss=val_loss)
+        self.save_best_n_history(json_path='best_n_history.json', history=history, n=2, trial_order=trial.number, val_loss=val_loss)
         return val_loss
 
 if __name__ == '__main__':
@@ -146,5 +149,6 @@ if __name__ == '__main__':
     os.chdir(save_dir)
     
     objective = Objective(tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir)
-    study = optuna.create_study(study_name='cnn_xy_0', storage='sqlite:///cnn_xy_0.db', load_if_exists=True)
-    study.optimize(objective, n_trials=10)
+    pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=30, interval_steps=1)
+    study = optuna.create_study(pruner=pruner, study_name='cnn_xy_0', storage='sqlite:///cnn_xy_0.db', load_if_exists=True)
+    study.optimize(objective, n_trials=30)
