@@ -101,13 +101,15 @@ class Objective():
         
         # ハイーパーパラメータの定義
         filter_num = trial.suggest_int(name='filter_num', low=100, high=300, step=1)
+        kernel_size = trial.suggest_int(name='kernel_size', low=8, high=16, step=8)
+        strides = int(2**trial.suggest_int(name='strides', low=1, high=3, step=1))
         num_layer = trial.suggest_int(name='num_layer', low=4, high=6, step=1)
         mid_units = [trial.suggest_int(name='mid_units_{}'.format(i), low=50, high=300, step=1) for i in range(num_layer)]
         lr = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
         
         # モデルの定義
         inputs = tf.keras.layers.Input(shape=(H,W,C), name="input")
-        layer = Conv2D(filters=filter_num, kernel_size=(8, 8), strides=4, name='conv')(inputs)
+        layer = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='conv')(inputs)
         layer = BatchNormalization(name='BN_conv')(layer)
         layer = ReLU(name='Relu_conv')(layer)
         layer = Flatten(name='flatten')(layer)
@@ -135,14 +137,14 @@ class Objective():
         return val_loss
 
 if __name__ == '__main__':
-    tr_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\input.npy'
-    tr_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\label.npy'
-    val_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_input.npy'
-    val_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\test_label.npy'
-    save_dir = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn'
+    tr_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\training_input.npy'
+    tr_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\training_label.npy'
+    val_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_input.npy'
+    val_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_label.npy'
+    save_dir = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\cnn_xy_0'
     
     os.chdir(save_dir)
     
     objective = Objective(tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir)
     study = optuna.create_study(study_name='cnn_xy_0', storage='sqlite:///cnn_xy_0.db', load_if_exists=True)
-    study.optimize(objective, n_trials=3)
+    study.optimize(objective, n_trials=10)
