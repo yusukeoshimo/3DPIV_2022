@@ -73,9 +73,9 @@ def data_gen():
     tensor = velocity_gradient_tensor(a, b, eps1, eps2, e4, omega)
     outer_frame = 64
     inner_frame = 32
-    particle_num = 160
+    particle_num = 120
     depth = 64
-    sigma_l = 19.3 # z=+-8ピクセルの時に輝度128となるようなレーザー厚さ
+    sigma_l = 27.2 # z=+-16ピクセルの時に輝度64となるようなレーザー厚さ
     d_p = 3
     xp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
     yp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
