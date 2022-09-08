@@ -6,6 +6,12 @@ import numpy as np
 import math
 import random
 import os
+import multiprocessing
+from multiprocessing import Pool
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from experiment.LightGBM.func.stack_memmap import stack_memmap
+import shutil
 
 def velocity_gradient_tensor(a, b, eps1, eps2, e4, omega):
     #                                        [ ∂u/∂x  ∂u/∂y  ∂u/∂z ]
@@ -47,7 +53,7 @@ def mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, white_noise, inner_frame):
     img = img.astype(np.uint8)
     return img
 
-def main():
+def data_gen():
     while True:
         a = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
         b = np.array([random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-1, 1)])
@@ -86,25 +92,6 @@ def main():
     v = main_v + tensor[1][0]*xp + tensor[1][1]*yp + tensor[1][2]*zp
     w = main_w + tensor[2][0]*xp + tensor[2][1]*yp + tensor[2][2]*zp
     
-    # matplotlib.use('Agg')
-    # fig = plt.figure()
-    # gridwidth=4
-    # LX1 = -(inner_frame)//2
-    # LX2 = (inner_frame)//2
-    # X, Y= np.meshgrid(np.arange(LX1, LX2, gridwidth), np.arange(LX1, LX2,gridwidth)) 
-    # U = main_u + tensor[0][0]*X + tensor[0][1]*Y
-    # V = main_v + tensor[1][0]*X + tensor[1][1]*Y
-    # plt.title('u:{}, v:{}, w:{}'.format(main_u, main_v, main_w))
-    # plt.quiver(X,Y,U,V,color='black',angles='xy',scale_units='xy', scale=1)
-    # plt.xlim([LX1,LX2])
-    # plt.ylim([LX1,LX2])
-    # plt.gca().invert_yaxis()
-    # # graph
-    # plt.grid()
-    # fig.savefig('fig.bmp')
-    # plt.show()
-    
-    
     xp = xp + u
     yp = yp + v
     zp = zp + w
@@ -112,21 +99,44 @@ def main():
     
     return img_0, img_1, main_u, main_v, main_w
 
-if __name__ == '__main__':
-    save_dir = input('input save dir > ')
-    data_num = 10
-    input_dtype = np.uint8
+def main(args):
+    process_id, save_dir, data_num = args
+    process_dir = os.path.join(save_dir, str(process_id))
+    if not os.path.exists(process_dir):
+        os.mkdir(process_dir)
+    
+    input_dtype = np.float16
     img_size = 32
     label_dtype = np.float16
-    input_mem_path = os.path.join(save_dir, 'input.npy')
-    label_mem_path = os.path.join(save_dir, 'label.npy')
+    input_mem_path = os.path.join(process_dir, 'input.npy')
+    label_mem_path = os.path.join(process_dir, 'label.npy')
     input_memmap = np.memmap(input_mem_path, dtype=input_dtype, mode='w+', shape=(data_num, img_size, img_size, 2))
     label_memmap = np.memmap(label_mem_path, dtype=label_dtype, mode='w+', shape=(data_num, 3))
     for i in tqdm(range(data_num)):
-        img_0, img_1, main_u, main_v, main_w = main()
+        img_0, img_1, main_u, main_v, main_w = data_gen()
         
         data = np.array([img_0, img_1])
-        data = data.transpose(1,2,0)
+        data = data.transpose(1,2,0) # チャンネルラスト
+        data = data.astype(input_dtype)/255 # 正規化
         input_memmap[i] = data
         
         label_memmap[i] = np.array([main_u, main_v, main_w]).astype(label_dtype)
+    
+if __name__ == '__main__':
+    save_dir = input('input save dir > ')
+    logical_processor = int(input('何コアで並列計算させますか？上限は{}です>'.format(multiprocessing.cpu_count())))
+    total_data_num = int(input('input data num > '))
+    args = [[process_id, save_dir, total_data_num//logical_processor] for process_id in range(logical_processor)]
+    p = Pool(logical_processor)
+    p.map(main,args)
+    p.close()
+    
+    memmap_path_list = [os.path.join(save_dir, str(i), 'input.npy') for i in range(logical_processor)]
+    stack_memmap_path = os.path.join(save_dir, 'input.npy')
+    stack_memmap(memmap_path_list, stack_memmap_path, 32, 32, dtype=np.float16)
+    memmap_path_list = [os.path.join(save_dir, str(i), 'label.npy') for i in range(logical_processor)]
+    stack_memmap_path = os.path.join(save_dir, 'label.npy')
+    stack_memmap(memmap_path_list, stack_memmap_path, 1, 1, dtype=np.float16)
+    
+    for dir_path in [os.path.join(save_dir, str(i)) for i in range(logical_processor)]:
+        shutil.rmtree(dir_path)
