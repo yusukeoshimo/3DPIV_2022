@@ -75,7 +75,7 @@ def data_gen():
     inner_frame = 32
     particle_num = 120
     depth = 64
-    sigma_l = 32
+    sigma_l = 19.3 # z=+-8ピクセルの時に輝度128となるようなレーザー厚さ
     d_p = 3
     xp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
     yp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
@@ -114,7 +114,7 @@ def main(args):
     label_memmap = np.memmap(label_mem_path, dtype=label_dtype, mode='w+', shape=(data_num, 3))
     for i in tqdm(range(data_num)):
         img_0, img_1, main_u, main_v, main_w = data_gen()
-        
+
         data = np.array([img_0, img_1])
         data = data.transpose(1,2,0) # チャンネルラスト
         data = data.astype(input_dtype)/255 # 正規化
