@@ -1,3 +1,4 @@
+import os
 from turtle import width
 import cv2
 import numpy as np
@@ -5,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 
 
-def stripe_gen(width, height):
+def stripe_gen(width, height, a_low=0.0, a_hight=0.4, b_low=0.6):
     # 軸の回転
     dst_x = np.arange(width)
     dst_y = np.arange(height).reshape(-1, 1)
@@ -28,15 +29,15 @@ def stripe_gen(width, height):
     # 二次元グラフにする
     intensity = intensity_x*intensity_y
     # 平均輝度分布の値域を1~0.6に
-    a = np.random.uniform(low=0, high=0.4)
-    b = np.random.uniform(low=0.6, high=(1-a))
+    a = np.random.uniform(low=a_low, high=a_hight)
+    b = np.random.uniform(low=b_low, high=(1-a))
     intensity = a*intensity + b
     return intensity
 
 if __name__ == '__main__':
-    for i in range(40):
-        intensity = stripe_gen(32, 32)
-        intensity = (255*intensity).astype(np.uint8)
+    for i in range(10):
+        intensity = stripe_gen(32, 32, a_low=0, a_hight=1, b_low=0)
+        intensity = (30*intensity).astype(np.uint8)
         
         cv2.imshow('intensity', intensity)
         cv2.waitKey(1000)
