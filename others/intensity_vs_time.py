@@ -31,7 +31,7 @@ def main(save_path, dir_path, width, height, turn_on_time, fps):
     plt.plot(time, df['mean'], color='black', label='mean',
              marker='o', markersize=2, markerfacecolor='blue', markeredgecolor="blue")
     plt.xlim((0, turn_on_time))
-    plt.ylim((0, 100))
+    plt.ylim((0, 255))
     plt.fill_between(time, df['1_lower'], df['1_upper'], alpha=0.7, label="$1\sigma$", color='red')
     plt.fill_between(time, df['2_lower'], df['2_upper'], alpha=0.3, label="$2\sigma$", color='red')
     plt.legend(loc=1)
