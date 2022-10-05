@@ -9,9 +9,9 @@ def main(img):
     ax.set_title('intensity vs location')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    c = ax.contourf(np.flipud(img), 20, cmap="jet")
-    ax.set_aspect(1)
-    fig.colorbar(c)
+    c = plt.imshow(img, cmap=plt.cm.jet)
+    plt.colorbar()
+    plt.clim(0, 255)
     plt.show()
 
 if __name__ == '__main__':

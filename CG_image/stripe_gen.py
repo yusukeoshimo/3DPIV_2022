@@ -6,7 +6,7 @@ import math
 import matplotlib.pyplot as plt
 
 
-def stripe_gen(width, height, a_low=0.0, a_hight=0.4, b_low=0.6):
+def stripe_gen(width, height, a_low=0.0, a_high=0.4, b_low=0.6):
     # 軸の回転
     dst_x = np.arange(width)
     dst_y = np.arange(height).reshape(-1, 1)
@@ -29,15 +29,15 @@ def stripe_gen(width, height, a_low=0.0, a_hight=0.4, b_low=0.6):
     # 二次元グラフにする
     intensity = intensity_x*intensity_y
     # 平均輝度分布の値域を1~0.6に
-    a = np.random.uniform(low=a_low, high=a_hight)
-    b = np.random.uniform(low=b_low, high=(1-a))
+    a = np.random.uniform(low=a_low, high=a_high)
+    b = np.random.uniform(low=b_low, high=(a_high+b_low-a))
     intensity = a*intensity + b
     return intensity
 
 if __name__ == '__main__':
+    save_dir = input('input save dir > ')
     for i in range(10):
-        intensity = stripe_gen(32, 32, a_low=0, a_hight=1, b_low=0)
-        intensity = (30*intensity).astype(np.uint8)
+        intensity = stripe_gen(32, 32, a_low=0, a_high=18, b_low=27)
+        intensity = intensity.astype(np.uint8)
         
-        cv2.imshow('intensity', intensity)
-        cv2.waitKey(1000)
+        cv2.imwrite(os.path.join(save_dir, '{}.png'.format(i)), intensity)
