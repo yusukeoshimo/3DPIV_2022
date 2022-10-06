@@ -106,7 +106,7 @@ class Objective():
     
     def __call__(self, trial):
     # データの形
-        H, W, C = 32, 32, 2
+        H, W, C = 32, 32, 4
         label_num = 3
         
         tf.keras.backend.clear_session()
