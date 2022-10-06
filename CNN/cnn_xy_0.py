@@ -90,16 +90,16 @@ class Objective():
     
     def __call__(self, trial):
     # データの形
-        H, W, C = 32, 32, 2
+        H, W, C = 32, 32, 4
         label_num = 3
         
         tf.keras.backend.clear_session()
         
         # トレーニングデータの読み込み
-        x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
+        x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,:2]
         y_train = np.memmap(self.tr_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         # 検証用データの読み込み
-        x_validation = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)
+        x_validation = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,:2]
         y_validation = np.memmap(self.val_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         
         # ハイーパーパラメータの定義
@@ -111,7 +111,7 @@ class Objective():
         lr = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
         
         # モデルの定義
-        inputs = tf.keras.layers.Input(shape=(H,W,C), name="input")
+        inputs = tf.keras.layers.Input(shape=(H,W,2), name="input")
         layer = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='conv')(inputs)
         layer = BatchNormalization(name='BN_conv')(layer)
         layer = ReLU(name='Relu_conv')(layer)
