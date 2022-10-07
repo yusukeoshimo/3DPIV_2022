@@ -118,7 +118,7 @@ def main(args):
     if not os.path.exists(process_dir):
         os.mkdir(process_dir)
     
-    input_dtype = np.float16
+    input_dtype = np.uint8
     img_size = 32
     label_dtype = np.float16
     input_mem_path = os.path.join(process_dir, 'input.npy')
@@ -130,7 +130,6 @@ def main(args):
         
         data = np.array([img_0, img_1, avg, back_ground])
         data = data.transpose(1,2,0) # チャンネルラスト
-        data = data.astype(input_dtype)/255 # 正規化
         input_memmap[i] = data
         
         label_memmap[i] = np.array([main_u, main_v, main_w]).astype(label_dtype)
@@ -146,7 +145,7 @@ if __name__ == '__main__':
     
     memmap_path_list = [os.path.join(save_dir, str(i), 'input.npy') for i in range(logical_processor)]
     stack_memmap_path = os.path.join(save_dir, 'input.npy')
-    stack_memmap(memmap_path_list, stack_memmap_path, 32, 32, dtype=np.float16)
+    stack_memmap(memmap_path_list, stack_memmap_path, 32, 32, dtype=np.uint8)
     memmap_path_list = [os.path.join(save_dir, str(i), 'label.npy') for i in range(logical_processor)]
     stack_memmap_path = os.path.join(save_dir, 'label.npy')
     stack_memmap(memmap_path_list, stack_memmap_path, 1, 1, dtype=np.float16)

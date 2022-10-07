@@ -2,6 +2,7 @@ import os
 import sys
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, Dropout
+from tensorflow.keras.layers.experimental.preprocessing import Rescaling
 import tensorflow as tf
 import numpy as np
 import math
@@ -96,10 +97,10 @@ class Objective():
         tf.keras.backend.clear_session()
         
         # トレーニングデータの読み込み
-        x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,:2]
+        x_train = np.memmap(self.tr_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,:2]
         y_train = np.memmap(self.tr_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         # 検証用データの読み込み
-        x_validation = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,:2]
+        x_validation = np.memmap(self.val_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,:2]
         y_validation = np.memmap(self.val_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         
         # ハイーパーパラメータの定義
@@ -112,7 +113,8 @@ class Objective():
         
         # モデルの定義
         inputs = tf.keras.layers.Input(shape=(H,W,2), name="input")
-        layer = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='conv')(inputs)
+        layer = Rescaling(scale=1./255)(inputs)
+        layer = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='conv')(layer)
         layer = BatchNormalization(name='BN_conv')(layer)
         layer = ReLU(name='Relu_conv')(layer)
         layer = Flatten(name='flatten')(layer)
