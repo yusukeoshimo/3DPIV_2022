@@ -140,18 +140,18 @@ if __name__ == '__main__':
     
     calib_path = os.path.join('calibration','Cam01','Calib01','Calibration.cal')
     json_path = os.path.join(project_dir_path, 'system', 'control_dict.json')
-    csv_path = os.path.join('extracted_data','grid.csv')
-    orignal_image_path = os.path.join('calib_board', 'off.bmp')
-    calibed_image_path = os.path.join('calibrated_image','mapped_{}.bmp'.format(os.path.splitext(os.path.basename(orignal_image_path))[0]))
-    orignal_video_path = glob.glob(os.path.join('raw_video', '*.avi'))[0]
-    calibed_video_path = os.path.join('calibrated_video','mapped_{}.avi'.format(os.path.splitext(os.path.basename(orignal_video_path))[0]))
+    csv_path = os.path.join('grid.csv')
+    orignal_image_path = os.path.join('off.bmp')
+    calibed_image_path = os.path.join('mapped_{}.bmp'.format(os.path.splitext(os.path.basename(orignal_image_path))[0]))
+    # orignal_video_path = glob.glob(os.path.join('bottom.avi'))[0]
+    # calibed_video_path = os.path.join('mapped_{}.avi'.format(os.path.splitext(os.path.basename(orignal_video_path))[0]))
     
     control_dict = read_json(json_path)
     if control_dict['recalib_bool'] == True:
         txt2csv(calib_path, 'Error distribution in physical coordinate', 'RMS', csv_path)
     
     data_dict = {'grid_len_phys':5,
-                 'grid_len_pix':32}
+                 'grid_len_pix':44}
 
     calib = calibrator(grid_len_phys=float(data_dict['grid_len_phys']), grid_len_pix=int(data_dict['grid_len_pix']), csv_path=csv_path)
     
@@ -163,4 +163,4 @@ if __name__ == '__main__':
     cv2.imwrite(calibed_image_path, image)
     
     output_size = (image.shape[1],image.shape[0])
-    video_processing(orignal_video_path,calibed_video_path,calib.transpose,output_size)()
+    # video_processing(orignal_video_path,calibed_video_path,calib.transpose,output_size)()
