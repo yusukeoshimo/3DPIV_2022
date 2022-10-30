@@ -1,7 +1,9 @@
 import os
 import sys
+from unicodedata import name
 import tensorflow.keras as keras
-from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, Dropout, concatenate
+from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, ReLU, Flatten, Dense, Dropout, concatenate
+from tensorflow.keras.layers.experimental.preprocessing import Rescaling
 import tensorflow as tf
 import numpy as np
 import math
@@ -106,18 +108,18 @@ class Objective():
     
     def __call__(self, trial):
     # データの形
-        H, W, C = 32, 32, 2
+        H, W, C = 32, 32, 4
         label_num = 3
         
         tf.keras.backend.clear_session()
         
         # トレーニングデータの読み込み
-        x_train_0 = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,0].reshape(-1,H,W,1)
-        x_train_1 = np.memmap(self.tr_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,1].reshape(-1,H,W,1)
+        x_train_0 = np.memmap(self.tr_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,0].reshape(-1,H,W,1)
+        x_train_1 = np.memmap(self.tr_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,1].reshape(-1,H,W,1)
         y_train = np.memmap(self.tr_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         # 検証用データの読み込み
-        x_validation_0 = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,0].reshape(-1,H,W,1)
-        x_validation_1 = np.memmap(self.val_x_path, mode='r', dtype=np.float16).reshape(-1, H, W, C)[:,:,:,1].reshape(-1,H,W,1)
+        x_validation_0 = np.memmap(self.val_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,0].reshape(-1,H,W,1)
+        x_validation_1 = np.memmap(self.val_x_path, mode='r', dtype=np.uint8).reshape(-1, H, W, C)[:,:,:,1].reshape(-1,H,W,1)
         y_validation = np.memmap(self.val_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         
         # ハイーパーパラメータの定義
@@ -130,14 +132,16 @@ class Objective():
         
         # モデルの定義
         # src側
-        src_input = tf.keras.layers.Input(shape=(H,W,1), name="src_input")
-        src_conv = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='src_conv')(src_input)
+        src_input = Input(shape=(H,W,1), name="src_input")
+        src_rescaling = Rescaling(scale=1./255, name="src_rescaling")(src_input)
+        src_conv = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='src_conv')(src_rescaling)
         src_BN = BatchNormalization(name='src_BN')(src_conv)
         src_relu = ReLU(name='src_Relu')(src_BN)
         src_flatten = Flatten(name='src_flatten')(src_relu)
         # dst側
-        dst_input = tf.keras.layers.Input(shape=(H,W,1), name="dst_input")
-        dst_conv = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='dst_conv', trainable=False)(dst_input)
+        dst_input = Input(shape=(H,W,1), name="dst_input")
+        dst_rescaling = Rescaling(scale=1./255, name='dst_rescaling')(dst_input)
+        dst_conv = Conv2D(filters=filter_num, kernel_size=(kernel_size, kernel_size), strides=strides, name='dst_conv', trainable=False)(dst_rescaling)
         dst_BN = BatchNormalization(name='dst_BN')(dst_conv)
         dst_relu = ReLU(name='dst_Relu')(dst_BN)
         dst_flatten = Flatten(name='dst_flatten')(dst_relu)

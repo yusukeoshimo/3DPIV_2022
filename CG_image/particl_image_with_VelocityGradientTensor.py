@@ -11,6 +11,7 @@ from multiprocessing import Pool
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from experiment.LightGBM.func.stack_memmap import stack_memmap
+from CG_image.stripe_gen import stripe_gen
 import shutil
 
 def velocity_gradient_tensor(a, b, eps1, eps2, e4, omega):
@@ -45,10 +46,10 @@ def velocity_gradient_tensor(a, b, eps1, eps2, e4, omega):
     return (eps1*e1.reshape(-1, 1)*e1 + eps2*e2.reshape(-1, 1)*e2 - (eps1 + eps2)*e3.reshape(-1, 1)*e3 +
         0.5*omega*np.array([[0.0, -e4[2], e4[1]], [e4[2], 0.0, -e4[0]], [-e4[1], e4[0], 0.0]]))
 
-def mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, white_noise, inner_frame):
+def mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, inner_frame, ununiformity=1, back_ground=0):
     x = np.arange(-inner_frame/2, inner_frame/2)
     y = np.arange(-inner_frame/2, inner_frame/2).reshape(-1,1)
-    img = np.sum(eq_coef*np.exp(-zp**2/(sigma_l/2)**2)*np.exp(-((x-xp)**2+(y-yp)**2)/(d_p/2)**2),axis=0)+white_noise # 輝度の計算
+    img = ununiformity*np.sum(eq_coef*np.exp(-zp**2/(sigma_l/2)**2)*np.exp(-((x-xp)**2+(y-yp)**2)/(d_p/2)**2),axis=0)+back_ground # 輝度の計算
     img[img >= 255] = 255 # キャスト時のオーバーフロー対策
     img = img.astype(np.uint8)
     return img
@@ -80,10 +81,14 @@ def data_gen():
     xp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
     yp = np.random.uniform(-outer_frame/2, outer_frame/2, particle_num).reshape(-1, 1, 1)
     zp = np.random.uniform(-depth/2, depth/2, particle_num).reshape(-1, 1, 1)
-    white_noise = random.uniform(0,255*0.01)
     eq_coef = 255
     
-    img_0 = mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, white_noise, inner_frame)
+    ununiformity = stripe_gen(width=inner_frame, height=inner_frame, a_low=0, a_high=0.4, b_low=0.6)
+    back_ground = stripe_gen(width=inner_frame, height=inner_frame, a_low=0, a_high=18, b_low=27)
+    img_0 = mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, inner_frame, ununiformity, back_ground)
+    img_0 = img_0 - back_ground # 背景除去
+    img_0[img_0 < 0] = 0 # アンダーフロー対策
+    img_0 = img_0.astype(np.uint8)
     
     main_u = random.uniform(-8, 8)
     main_v = random.uniform(-8, 8)
@@ -95,9 +100,17 @@ def data_gen():
     xp = xp + u
     yp = yp + v
     zp = zp + w
-    img_1 = mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, white_noise, inner_frame)
+    img_1 = mk_API(eq_coef, sigma_l, xp, yp, zp, d_p, inner_frame, ununiformity, back_ground)
+    img_1 = img_1 - back_ground # 背景除去
+    img_1[img_1 < 0] = 0 # アンダーフロー対策
+    img_1.astype(np.uint8)
     
-    return img_0, img_1, main_u, main_v, main_w
+    avg = 30*ununiformity
+    avg[avg>255] = 255
+    avg.astype(np.uint8)
+    back_ground[back_ground>255] = 255
+    back_ground.astype(np.uint8)
+    return img_0, img_1, avg, back_ground, main_u, main_v, main_w
 
 def main(args):
     process_id, save_dir, data_num = args
@@ -105,19 +118,18 @@ def main(args):
     if not os.path.exists(process_dir):
         os.mkdir(process_dir)
     
-    input_dtype = np.float16
+    input_dtype = np.uint8
     img_size = 32
     label_dtype = np.float16
     input_mem_path = os.path.join(process_dir, 'input.npy')
     label_mem_path = os.path.join(process_dir, 'label.npy')
-    input_memmap = np.memmap(input_mem_path, dtype=input_dtype, mode='w+', shape=(data_num, img_size, img_size, 2))
+    input_memmap = np.memmap(input_mem_path, dtype=input_dtype, mode='w+', shape=(data_num, img_size, img_size, 4))
     label_memmap = np.memmap(label_mem_path, dtype=label_dtype, mode='w+', shape=(data_num, 3))
     for i in tqdm(range(data_num)):
-        img_0, img_1, main_u, main_v, main_w = data_gen()
-
-        data = np.array([img_0, img_1])
+        img_0, img_1, avg, back_ground, main_u, main_v, main_w = data_gen()
+        
+        data = np.array([img_0, img_1, avg, back_ground])
         data = data.transpose(1,2,0) # チャンネルラスト
-        data = data.astype(input_dtype)/255 # 正規化
         input_memmap[i] = data
         
         label_memmap[i] = np.array([main_u, main_v, main_w]).astype(label_dtype)
@@ -133,7 +145,7 @@ if __name__ == '__main__':
     
     memmap_path_list = [os.path.join(save_dir, str(i), 'input.npy') for i in range(logical_processor)]
     stack_memmap_path = os.path.join(save_dir, 'input.npy')
-    stack_memmap(memmap_path_list, stack_memmap_path, 32, 32, dtype=np.float16)
+    stack_memmap(memmap_path_list, stack_memmap_path, 32, 32, dtype=np.uint8)
     memmap_path_list = [os.path.join(save_dir, str(i), 'label.npy') for i in range(logical_processor)]
     stack_memmap_path = os.path.join(save_dir, 'label.npy')
     stack_memmap(memmap_path_list, stack_memmap_path, 1, 1, dtype=np.float16)
