@@ -1,7 +1,7 @@
 #define LASER1 7
 #define LASER2 8
 
-int turn_on_time = 500;
+int turn_on_time = 1000;
 int split_time = 3;
 int cooldown_time = 100;
 
