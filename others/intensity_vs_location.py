@@ -11,7 +11,8 @@ def main(img):
     ax.set_ylabel('y')
     c = plt.imshow(img, cmap=plt.cm.jet)
     plt.colorbar()
-    plt.clim(0, 255)
+    ax.set_aspect('equal')
+    # plt.clim(0, 255)
     plt.show()
 
 if __name__ == '__main__':
