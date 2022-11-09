@@ -17,8 +17,8 @@ from util.my_json import read_json, write_json
 from CNN.cnn_xy_0 import FitGen
 
 class Objective():
-    def __init__(self, model_path_list, tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir):
-        self.model_path_list = model_path_list
+    def __init__(self, model_path, tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir):
+        self.model_path = model_path
         self.tr_x_path = tr_x_path
         self.tr_y_path = tr_y_path
         self.val_x_path = val_x_path
@@ -86,12 +86,11 @@ class Objective():
         y_validation = np.memmap(self.val_y_path, mode='r', dtype=np.float16).reshape(-1, label_num)[:,:2]
         
         # ハイーパーパラメータの定義
-        model_path = trial.suggest_categorical('model_path', self.model_path_list)
         trainable_num = trial.suggest_int('trainable_num', low=1, high=25)
         lr = trial.suggest_loguniform('learning_rate', 1e-6, 1e-3)
         
         # モデルの定義
-        model = keras.models.load_model(model_path)
+        model = keras.models.load_model(self.model_path)
         model.trainable = False
         for l in model.layers[-trainable_num:]:
             l.trainable = True
@@ -118,12 +117,11 @@ if __name__ == '__main__':
     tr_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\training_label.npy'
     val_x_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_input.npy'
     val_y_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_label.npy'
-    save_dir = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\cnn_xy_0_finetuning'
     
-    os.chdir(save_dir)
-    
-    objective = Objective(model_path_list, tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir)
-    pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=30, interval_steps=1)
-    study = optuna.create_study(pruner=pruner, study_name='cnn_xy_0_finetuning', storage='sqlite:///cnn_xy_0_finetuning.db', load_if_exists=True)
-    study.optimize(objective, n_trials=30)
-
+    for i, model_path in enumerate(model_path_list):
+        save_dir = os.path.join(r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\cnn_xy_0_finetuning', str(i))
+        os.chdir(save_dir)
+        objective = Objective(model_path, tr_x_path, tr_y_path, val_x_path, val_y_path, save_dir)
+        pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=30, interval_steps=1)
+        study = optuna.create_study(pruner=pruner, study_name='cnn_xy_0_finetuning_{}'.format(i), storage='sqlite:///cnn_xy_0_finetuning_{}.db'.format(i), load_if_exists=True)
+        study.optimize(objective, n_trials=3)
