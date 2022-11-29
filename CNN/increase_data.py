@@ -6,12 +6,9 @@ from tqdm import tqdm
 import os
 import itertools
 
-input_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_input.npy'
-label_path = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data\validation_label.npy'
-save_dir = r'c:\Users\yusuk\Documents\3dpiv_2022\cnn\data'
-# input_path = input('input input-memmap path >')
-# label_path = input('input src_label-memmap path >')
-# save_dir = input('input save dir >')
+input_path = input('input input-memmap path >')
+label_path = input('input src_label-memmap path >')
+save_dir = input('input save dir >')
 
 src_input = np.memmap(input_path, mode='r', dtype=np.uint8).reshape(-1, 32, 32, 4)
 src_label = np.memmap(label_path, mode='r', dtype=np.float16).reshape(-1, 3)
@@ -40,7 +37,3 @@ for i, bool_lsit in enumerate(product_list):
 
 dst_input = np.memmap(os.path.join(save_dir, 'increase_input.npy'), mode='r', dtype=src_input.dtype, shape=(8*src_input.shape[0], src_input.shape[1], src_input.shape[2], src_input.shape[3]))
 dst_label = np.memmap(os.path.join(save_dir, 'increase_label.npy'), mode='r', dtype=src_label.dtype, shape=(8*src_label.shape[0], src_label.shape[1]))
-
-for i in range(8):
-    cv2.imwrite(f'{product_list[i][0]}_{product_list[i][1]}_{product_list[i][2]}.bmp', dst_input[i*1000,:,:,0])
-    print(dst_label[i*1000,:])

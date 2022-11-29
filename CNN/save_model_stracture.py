@@ -4,4 +4,4 @@ from tensorflow import keras
 model_path = input('input model path > ')
 save_dir = input('input save dir > ')
 model = load_model(model_path)
-keras.utils.plot_model(model, os.path.join(save_dir, 'model_stracture.png'), show_shapes=True, show_layer_names=False)
+keras.utils.plot_model(model, os.path.join(save_dir, 'model_stracture.png'), show_shapes=False, show_layer_names=False, expand_nested=False)
