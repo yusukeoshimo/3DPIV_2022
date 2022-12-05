@@ -32,14 +32,20 @@ label = np.memmap(label_path, np.float16, 'r').reshape(-1, 3)[:data_num,2]
 X0, X1, label = my_undersampling([X0, X1, label], label, 10)
 Y = model.predict([X0, X1])
 
+mae = model.evaluate([X0, X1], label)
+
 # 最小二乗法
 coef = np.polyfit(label, Y, 1)
 a = coef[0]
 b = coef[1]
-print(a, b)
 
 fig, ax = plt.subplots()
-plt.scatter(label, Y, s=1, alpha=1)
+plt.title(f'a:{round(float(a),2)}, b:{round(float(b),2)}, N:{label.shape[0]}, mae:{round(mae,2)}')
+plt.xlabel('label')
+plt.ylabel('prediction')
+plt.xlim((-1,9))
+plt.ylim((-1,9))
+plt.scatter(label, Y, s=0.5, alpha=0.1)
 ax.set_aspect('equal')
 plt.plot([0,8],[a*0+b, a*8+b], color='red')
 plt.savefig(os.path.join(save_dir, 'prediction_vs_label.png'))
