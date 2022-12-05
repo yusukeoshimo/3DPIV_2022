@@ -12,5 +12,4 @@ study = optuna.load_study(study_name=study_name, storage='sqlite:///{}.db'.forma
 
 df = study.trials_dataframe()
 df = df.sort_values('value')
-for idx, row in df.iterrows():
-    print(row['number'], row['value'], row['params_model_path'])
+df.to_csv(f'{storage_name}.csv')
