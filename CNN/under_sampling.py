@@ -29,7 +29,7 @@ if __name__ == '__main__':
     target = label[:,target_id]
     x, label = undersampling(srcs, target, split=8)
 
-    new_x = np.memmap(os.path.join(save_dir, 'UnderSampling_'+os.path.basename(x_path)), np.uint8, 'w+', shape=x.shape)
-    new_label = np.memmap(os.path.join(save_dir, 'UnderSampling_'+os.path.basename(label_path)), np.float16, 'w+', shape=label.shape)
+    new_x = np.memmap(os.path.join(save_dir, f'UnderSampling_{target_id}_'+os.path.basename(x_path)), np.uint8, 'w+', shape=x.shape)
+    new_label = np.memmap(os.path.join(save_dir, f'UnderSampling_{target_id}_'+os.path.basename(label_path)), np.float16, 'w+', shape=label.shape)
     new_x[:] = x
     new_label[:] = label
