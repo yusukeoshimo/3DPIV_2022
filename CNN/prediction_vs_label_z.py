@@ -4,32 +4,16 @@ from matplotlib import pyplot as plt
 import random
 import os
 
-def my_undersampling(srcs, target, split):
-    bins, thresholds = np.histogram(target, split)
-    dst_lists = [[] for i in srcs]
-    for i in range(bins.size):
-        bool_array = (target >= thresholds[i]) & (target <= thresholds[i+1])
-        sample_id = random.sample(range(np.count_nonzero(bool_array)), bins.min()) # ここにバグありa
-        for j, src in enumerate(srcs):
-            dst_lists[j].append(src[bool_array][sample_id])
-    dsts = []
-    for dst_list in dst_lists:
-        dst = np.concatenate(dst_list)
-        dsts.append(dst)
-    return dsts
-
 model_path = input('input model path >')
 X_path = input('input input-data >')
 label_path = input('input label path >')
 save_dir = input('input save dir >')
 data_num = -1
-
 model = load_model(model_path)
 X0 = np.memmap(X_path, np.uint8, 'r',).reshape(-1, 32, 32, 4)[:data_num,:,:,:2]
 X1 = np.memmap(X_path, np.uint8, 'r',).reshape(-1, 32, 32, 4)[:data_num]
 label = np.memmap(label_path, np.float16, 'r').reshape(-1, 3)[:data_num,2]
 
-X0, X1, label = my_undersampling([X0, X1, label], label, 10)
 Y = model.predict([X0, X1])
 
 mae = model.evaluate([X0, X1], label)
@@ -45,6 +29,8 @@ plt.xlabel('label')
 plt.ylabel('prediction')
 plt.xlim((-1,9))
 plt.ylim((-1,9))
+plt.xticks(range(-1,10,1))
+plt.yticks(range(-1,10,1))
 plt.scatter(label, Y, s=0.5, alpha=0.1)
 ax.set_aspect('equal')
 plt.plot([0,8],[a*0+b, a*8+b], color='red')
