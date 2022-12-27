@@ -1,4 +1,5 @@
 import os
+import shutil
 import sys
 import tensorflow.keras as keras
 from tensorflow.keras.layers import Conv2D, BatchNormalization, ReLU, Flatten, Dense, Dropout, Input, Average, Concatenate
@@ -51,7 +52,7 @@ class Objective():
         self.z_estimator_4_path = z_estimator_4_path
     
     def save_best_n_model(self, json_path, model, n, trial_order, val_loss):
-        model_path = os.path.join(self.save_dir, '{}_{}.h5'.format(trial_order, val_loss)) # モデルのパスを定義
+        model_path = os.path.join(self.save_dir, '{}_{}.tf'.format(trial_order, val_loss)) # モデルのパスを定義
         
         # jsonファイルのロード
         if not os.path.exists(json_path):
@@ -67,7 +68,7 @@ class Objective():
             write_json(json_path, best_n_model)
         else:
             if val_loss < max(best_n_model.values()):
-                os.remove(max(best_n_model, key=best_n_model.get)) # 一番損失値が大きいモデルを削除
+                shutil.rmtree(max(best_n_model, key=best_n_model.get)) # 一番損失値が大きいモデルを削除
                 model.save(model_path) # 性能を更新したモデルを保存
                 # best_n_modelを更新
                 del best_n_model[max(best_n_model, key=best_n_model.get)]
@@ -130,7 +131,7 @@ class Objective():
         z_estimator_2.trainable = False
         z_estimator_3.trainable = False
         z_estimator_4.trainable = False
-        
+
         # ハイーパーパラメータの定義
         mid_units = trial.suggest_int(name='weight_num', low=10, high=50, step=1)
         lr = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
